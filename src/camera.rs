@@ -21,7 +21,7 @@ impl AbstractCamera3d for Camera {
             self.fov.as_radians(),
             framebuffer_size.aspect(),
             0.1,
-            1000.0,
+            10000.0,
         )
     }
 }

@@ -19,11 +19,20 @@ pub struct CameraConfig {
     pub distance: f32,
     pub sensitivity: f32,
     pub move_speed: f32,
+    pub zoom_speed: f32,
+}
+
+#[derive(Deserialize)]
+pub struct GizmoConfig {
+    pub width: f32,
+    pub outline: f32,
+    pub size: f32,
 }
 
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
+    pub gizmo: GizmoConfig,
     pub camera: CameraConfig,
     pub default_brush_size: f32,
     pub background_color: Rgba<f32>,
@@ -38,6 +47,7 @@ pub struct Shaders {
     pub color: Rc<ugli::Program>,
     pub texture: Rc<ugli::Program>,
     pub circle: Rc<ugli::Program>,
+    pub ring: Rc<ugli::Program>,
 }
 
 impl geng::asset::Load for Shaders {
@@ -86,6 +96,9 @@ impl geng::asset::Load for Shaders {
                     shader_lib
                         .compile(&manager.load::<String>(path.join("texture.glsl")).await?)?,
                 ),
+                ring: Rc::new(
+                    shader_lib.compile(&manager.load::<String>(path.join("ring.glsl")).await?)?,
+                ),
             })
         }
         .boxed_local()
@@ -93,11 +106,15 @@ impl geng::asset::Load for Shaders {
     const DEFAULT_EXT: Option<&'static str> = None;
 }
 
+pub type QuadData = ugli::VertexBuffer<QuadVertex>;
+
 pub struct CtxImpl {
     pub geng: Geng,
-    pub config: Config,
-    pub shaders: Shaders,
-    pub quad: ugli::VertexBuffer<QuadVertex>,
+    pub config: Rc<Config>,
+    pub shaders: Rc<Shaders>,
+    pub quad: Rc<QuadData>,
+    pub gizmo: gizmo::Renderer,
+    pub white: Rc<ugli::Texture>,
 }
 
 #[derive(Clone)]
@@ -119,36 +136,44 @@ pub struct QuadVertex {
 
 impl Ctx {
     pub async fn new(geng: &Geng) -> Self {
+        let shaders: Rc<Shaders> = geng
+            .asset_manager()
+            .load(run_dir().join("shaders"))
+            .await
+            .unwrap();
+        let quad = Rc::new(ugli::VertexBuffer::new_static(
+            geng.ugli(),
+            vec![
+                QuadVertex {
+                    a_pos: vec2(-1.0, -1.0),
+                },
+                QuadVertex {
+                    a_pos: vec2(1.0, -1.0),
+                },
+                QuadVertex {
+                    a_pos: vec2(1.0, 1.0),
+                },
+                QuadVertex {
+                    a_pos: vec2(-1.0, 1.0),
+                },
+            ],
+        ));
+        let config = geng
+            .asset_manager()
+            .load(run_dir().join("config.toml"))
+            .await
+            .unwrap();
+        let white = Rc::new(ugli::Texture::new_with(geng.ugli(), vec2::splat(1), |_| {
+            Rgba::WHITE
+        }));
         Self {
             inner: Rc::new(CtxImpl {
-                config: geng
-                    .asset_manager()
-                    .load(run_dir().join("config.toml"))
-                    .await
-                    .unwrap(),
-                shaders: geng
-                    .asset_manager()
-                    .load(run_dir().join("shaders"))
-                    .await
-                    .unwrap(),
+                gizmo: gizmo::Renderer::new(geng, &shaders, &quad, &config, &white),
+                config,
+                shaders,
                 geng: geng.clone(),
-                quad: ugli::VertexBuffer::new_static(
-                    geng.ugli(),
-                    vec![
-                        QuadVertex {
-                            a_pos: vec2(-1.0, -1.0),
-                        },
-                        QuadVertex {
-                            a_pos: vec2(1.0, -1.0),
-                        },
-                        QuadVertex {
-                            a_pos: vec2(1.0, 1.0),
-                        },
-                        QuadVertex {
-                            a_pos: vec2(-1.0, 1.0),
-                        },
-                    ],
-                ),
+                quad,
+                white,
             }),
         }
     }

@@ -30,12 +30,13 @@ impl Texture {
             framebuffer,
             &self.ctx.shaders.texture,
             ugli::DrawMode::TriangleFan,
-            &self.ctx.quad,
+            &*self.ctx.quad,
             (
                 ugli::uniforms! {
                     u_texture: texture,
                     u_texture_size: texture.size(),
                     u_transform: transform,
+                    u_color: Rgba::WHITE,
                 },
                 camera.uniforms(framebuffer_size),
             ),
@@ -66,7 +67,7 @@ impl Texture {
             framebuffer,
             &self.ctx.shaders.color,
             ugli::DrawMode::TriangleFan,
-            &self.ctx.quad,
+            &*self.ctx.quad,
             ugli::uniforms! {
                 u_projection_matrix: mat3::ortho(self.bb.map(|x| x as f32)),
                 u_view_matrix: mat3::identity(),
@@ -80,7 +81,7 @@ impl Texture {
                 framebuffer,
                 &self.ctx.shaders.circle,
                 ugli::DrawMode::TriangleFan,
-                &self.ctx.quad,
+                &*self.ctx.quad,
                 ugli::uniforms! {
                     u_projection_matrix: mat3::ortho(self.bb.map(|x| x as f32)),
                     u_view_matrix: mat3::identity(),

@@ -3,6 +3,7 @@ use geng::prelude::*;
 mod camera;
 mod color;
 mod ctx;
+mod gizmo;
 mod plane;
 mod texture;
 mod wheel;
@@ -29,6 +30,7 @@ pub struct State {
     wheel: Option<Wheel>,
     plane: Plane,
     prev_draw_pos: Option<vec2<f32>>,
+    transform: Option<gizmo::TransformMode>,
 }
 
 impl State {
@@ -56,6 +58,7 @@ impl State {
                 transform: mat4::identity(),
             },
             prev_draw_pos: None,
+            transform: None,
         }
     }
 
@@ -80,7 +83,16 @@ impl State {
             Some(1.0),
             None,
         );
+
         self.plane.draw(framebuffer, &self.camera);
+
+        ugli::clear(framebuffer, None, Some(1.0), None);
+        if self.ctx.geng.window().is_key_pressed(geng::Key::T) {
+            self.ctx
+                .gizmo
+                .draw(framebuffer, &self.camera, self.plane.transform);
+        }
+
         if let Some(wheel) = &self.wheel {
             let hover = self.calculate_hover(wheel);
             let transform =
@@ -117,6 +129,19 @@ impl State {
                                 WheelType::Continious(typ) => typ.select(hover, &mut self),
                             }
                         }
+                    } else if self.ctx.geng.window().is_key_pressed(geng::Key::T) {
+                        if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
+                            let ray = self
+                                .camera
+                                .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
+                            self.transform = Some(
+                                self.ctx
+                                    .gizmo
+                                    .raycast(self.plane.transform, ray)
+                                    .map(|v| (self.plane.transform * v.extend(0.0)).xyz()),
+                            );
+                            self.ctx.geng.window().lock_cursor();
+                        }
                     } else {
                         #[allow(clippy::collapsible_else_if)]
                         if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
@@ -135,6 +160,12 @@ impl State {
                         }
                     }
                 }
+                geng::Event::MouseRelease {
+                    button: geng::MouseButton::Left,
+                } if self.transform.is_some() => {
+                    self.ctx.geng.window().unlock_cursor();
+                    self.transform = None;
+                }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
                 } => {
@@ -145,15 +176,40 @@ impl State {
                 } => {
                     self.ctx.geng.window().unlock_cursor();
                 }
-                geng::Event::RawMouseMove { delta } => {
-                    self.camera.rot +=
-                        Angle::from_degrees(-delta.x as f32 * self.ctx.config.camera.sensitivity);
-                    self.camera.attack = (self.camera.attack
-                        + Angle::from_degrees(
-                            -delta.y as f32 * self.ctx.config.camera.sensitivity,
-                        ))
-                    .clamp_abs(Angle::from_degrees(90.0));
-                }
+                geng::Event::RawMouseMove { delta } => match self.transform {
+                    Some(gizmo::TransformMode::Translate(v)) => {
+                        self.plane.transform = mat4::translate(
+                            v * vec3::dot(
+                                v,
+                                (self.camera.view_matrix().inverse()
+                                    * delta.map(|x| x as f32).extend(0.0).extend(0.0))
+                                .xyz(),
+                            ),
+                        ) * self.plane.transform;
+                    }
+                    Some(gizmo::TransformMode::Rotate(v)) => {
+                        let origin = (self.plane.transform * vec3::ZERO.extend(1.0)).into_3d();
+                        self.plane.transform = mat4::translate(origin)
+                            * mat4::rotate(
+                                v,
+                                Angle::from_degrees(
+                                    delta.y as f32 * self.ctx.config.camera.sensitivity,
+                                ),
+                            )
+                            * mat4::translate(-origin)
+                            * self.plane.transform;
+                    }
+                    None => {
+                        self.camera.rot += Angle::from_degrees(
+                            -delta.x as f32 * self.ctx.config.camera.sensitivity,
+                        );
+                        self.camera.attack = (self.camera.attack
+                            + Angle::from_degrees(
+                                -delta.y as f32 * self.ctx.config.camera.sensitivity,
+                            ))
+                        .clamp_abs(Angle::from_degrees(90.0));
+                    }
+                },
                 geng::Event::CursorMove { position } => {
                     let ray = self
                         .camera
@@ -181,6 +237,9 @@ impl State {
                     button: geng::MouseButton::Right,
                 } => {
                     self.wheel = None;
+                }
+                geng::Event::Wheel { delta } => {
+                    self.camera.distance *= self.ctx.config.camera.zoom_speed.powf(-delta as f32);
                 }
                 geng::Event::Draw => {
                     let delta_time = timer.tick();
@@ -213,8 +272,10 @@ impl State {
                         .map(|x| x as f32)
                         .rotate(self.camera.rot)
                         .extend(mov.z as f32);
-                    self.camera.pos +=
-                        mov * delta_time.as_secs_f64() as f32 * self.ctx.config.camera.move_speed;
+                    self.camera.pos += mov
+                        * delta_time.as_secs_f64() as f32
+                        * self.ctx.config.camera.move_speed
+                        * self.camera.distance;
 
                     self.ctx
                         .geng

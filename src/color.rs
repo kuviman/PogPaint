@@ -42,7 +42,7 @@ impl ContiniousWheel for ColorWheel {
             framebuffer,
             &self.program,
             ugli::DrawMode::TriangleFan,
-            &self.ctx.quad,
+            &*self.ctx.quad,
             (
                 ugli::uniforms! {
                     u_transform: transform,
