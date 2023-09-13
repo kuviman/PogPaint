@@ -17,6 +17,7 @@ pub struct CameraConfig {
     pub rotation: f32,
     pub attack: f32,
     pub distance: f32,
+    pub sensitivity: f32,
 }
 
 #[derive(geng::asset::Load, Deserialize)]

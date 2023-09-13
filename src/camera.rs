@@ -11,7 +11,7 @@ pub struct Camera {
 impl AbstractCamera3d for Camera {
     fn view_matrix(&self) -> mat4<f32> {
         mat4::translate(vec3(0.0, 0.0, -self.distance))
-            * mat4::rotate_x(self.attack + Angle::from_degrees(90.0))
+            * mat4::rotate_x(self.attack - Angle::from_degrees(90.0))
             * mat4::rotate_z(-self.rot)
             * mat4::translate(-self.pos)
     }

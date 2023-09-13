@@ -134,6 +134,25 @@ impl State {
                         }
                     }
                 }
+                geng::Event::MousePress {
+                    button: geng::MouseButton::Middle,
+                } => {
+                    self.ctx.geng.window().lock_cursor();
+                }
+                geng::Event::MouseRelease {
+                    button: geng::MouseButton::Middle,
+                } => {
+                    self.ctx.geng.window().unlock_cursor();
+                }
+                geng::Event::RawMouseMove { delta } => {
+                    self.camera.rot +=
+                        Angle::from_degrees(-delta.x as f32 * self.ctx.config.camera.sensitivity);
+                    self.camera.attack = (self.camera.attack
+                        + Angle::from_degrees(
+                            -delta.y as f32 * self.ctx.config.camera.sensitivity,
+                        ))
+                    .clamp_abs(Angle::from_degrees(90.0));
+                }
                 geng::Event::CursorMove { position } => {
                     let ray = self
                         .camera
