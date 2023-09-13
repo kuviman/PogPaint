@@ -103,6 +103,7 @@ impl State {
 
     pub async fn run(mut self) {
         let mut events = self.ctx.geng.window().events();
+        let mut timer = Timer::new();
         while let Some(event) = events.next().await {
             color::handle_event(&mut self, &event);
             match event {
@@ -182,6 +183,39 @@ impl State {
                     self.wheel = None;
                 }
                 geng::Event::Draw => {
+                    let delta_time = timer.tick();
+                    let mut mov = vec3::<i32>::ZERO;
+                    if self.ctx.geng.window().is_key_pressed(geng::Key::W) {
+                        mov.y += 1;
+                    }
+                    if self.ctx.geng.window().is_key_pressed(geng::Key::A) {
+                        mov.x -= 1;
+                    }
+                    if self.ctx.geng.window().is_key_pressed(geng::Key::S) {
+                        mov.y -= 1;
+                    }
+                    if self.ctx.geng.window().is_key_pressed(geng::Key::D) {
+                        mov.x += 1;
+                    }
+                    if self.ctx.geng.window().is_key_pressed(geng::Key::Space) {
+                        mov.z += 1;
+                    }
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(geng::Key::ControlLeft)
+                    {
+                        mov.z -= 1;
+                    }
+                    let mov = mov
+                        .xy()
+                        .map(|x| x as f32)
+                        .rotate(self.camera.rot)
+                        .extend(mov.z as f32);
+                    self.camera.pos +=
+                        mov * delta_time.as_secs_f64() as f32 * self.ctx.config.camera.move_speed;
+
                     self.ctx
                         .geng
                         .clone()

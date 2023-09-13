@@ -73,7 +73,7 @@ pub fn handle_event(state: &mut State, event: &geng::Event) {
                     |color, h| Hsla { h, ..color },
                 ))));
             }
-            geng::Key::S => {
+            geng::Key::J => {
                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
                     ctx,
                     &ctx.shaders.saturation_wheel,

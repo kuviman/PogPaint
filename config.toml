@@ -8,6 +8,7 @@ rotation = 30
 attack = 60
 distance = 100
 sensitivity = 0.05
+move_speed = 50
 
 [ui]
 fov = 10
