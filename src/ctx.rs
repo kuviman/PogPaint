@@ -15,6 +15,7 @@ pub struct WheelConfig {
 #[load(serde = "toml")]
 pub struct Config {
     pub fov: f32,
+    pub default_brush_size: f32,
     pub background_color: Rgba<f32>,
     pub wheel: WheelConfig,
     pub ui: UiConfig,

@@ -1,5 +1,6 @@
 background_color = "#999"
 fov = 300
+default_brush_size = 3
 
 [ui]
 fov = 10

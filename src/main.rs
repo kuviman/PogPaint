@@ -20,6 +20,7 @@ pub struct State {
     framebuffer_size: vec2<f32>,
     camera: Camera2d,
     ui_camera: Camera2d,
+    brush_size: f32,
     color: Hsla<f32>,
     wheel: Option<Wheel>,
     texture: Texture,
@@ -41,6 +42,7 @@ impl State {
                 rotation: Angle::ZERO,
                 fov: ctx.config.ui.fov,
             },
+            brush_size: ctx.config.default_brush_size,
             color: Hsla::new(0.0, 1.0, 0.5, 1.0),
             wheel: None,
             texture: Texture::new(ctx),
@@ -112,6 +114,12 @@ impl State {
                                 self.framebuffer_size,
                                 cursor_pos.map(|x| x as f32),
                             );
+                            self.texture.draw_line(
+                                cursor_pos,
+                                cursor_pos,
+                                self.brush_size,
+                                self.color.into(),
+                            );
                             self.prev_draw_pos = Some(cursor_pos);
                         }
                     }
@@ -121,8 +129,12 @@ impl State {
                         .camera
                         .screen_to_world(self.framebuffer_size, position.map(|x| x as f32));
                     if let Some(prev) = self.prev_draw_pos {
-                        self.texture
-                            .draw_line(prev, cursor_pos, 3.0, self.color.into());
+                        self.texture.draw_line(
+                            prev,
+                            cursor_pos,
+                            self.brush_size,
+                            self.color.into(),
+                        );
                         self.prev_draw_pos = Some(cursor_pos);
                     }
                 }
