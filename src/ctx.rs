@@ -19,9 +19,53 @@ pub struct Config {
     pub ui: UiConfig,
 }
 
-#[derive(geng::asset::Load)]
 pub struct Shaders {
-    pub hue_wheel: ugli::Program,
+    pub hue_wheel: Rc<ugli::Program>,
+    pub saturation_wheel: Rc<ugli::Program>,
+    pub lightness_wheel: Rc<ugli::Program>,
+}
+
+impl geng::asset::Load for Shaders {
+    type Options = ();
+    fn load(
+        manager: &geng::asset::Manager,
+        path: &std::path::Path,
+        _options: &Self::Options,
+    ) -> geng::asset::Future<Self> {
+        let manager = manager.clone();
+        let path = path.to_owned();
+        async move {
+            let mut shader_lib = geng::shader::Library::new(manager.ugli(), false, None);
+            shader_lib.add(
+                "color_wheel",
+                &manager
+                    .load::<String>(path.join("color_wheel.glsl"))
+                    .await?,
+            );
+            Ok(Self {
+                hue_wheel: Rc::new(
+                    shader_lib
+                        .compile(&manager.load::<String>(path.join("hue_wheel.glsl")).await?)?,
+                ),
+                saturation_wheel: Rc::new(
+                    shader_lib.compile(
+                        &manager
+                            .load::<String>(path.join("saturation_wheel.glsl"))
+                            .await?,
+                    )?,
+                ),
+                lightness_wheel: Rc::new(
+                    shader_lib.compile(
+                        &manager
+                            .load::<String>(path.join("lightness_wheel.glsl"))
+                            .await?,
+                    )?,
+                ),
+            })
+        }
+        .boxed_local()
+    }
+    const DEFAULT_EXT: Option<&'static str> = None;
 }
 
 pub struct CtxImpl {

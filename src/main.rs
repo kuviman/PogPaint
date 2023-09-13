@@ -12,30 +12,35 @@ struct Cli {
     geng: geng::CliArgs,
 }
 
-struct HueWheel {
+struct ColorWheel {
     ctx: Ctx,
+    program: Rc<ugli::Program>,
     base: Hsla<f32>,
+    f: Box<dyn Fn(Hsla<f32>, f32) -> Hsla<f32>>,
 }
 
-impl HueWheel {
-    pub fn new(ctx: &Ctx, base: Hsla<f32>) -> Self {
+impl ColorWheel {
+    pub fn new(
+        ctx: &Ctx,
+        program: &Rc<ugli::Program>,
+        base: Hsla<f32>,
+        f: impl 'static + Fn(Hsla<f32>, f32) -> Hsla<f32>,
+    ) -> Self {
         Self {
             ctx: ctx.clone(),
+            program: program.clone(),
             base,
+            f: Box::new(f),
         }
     }
     fn color_at(&self, angle: Angle<f32>) -> Hsla<f32> {
-        Hsla {
-            h: {
-                let x = angle.as_radians() / (2.0 * f32::PI);
-                x - x.floor()
-            },
-            ..self.base
-        }
+        let x = angle.as_radians() / (2.0 * f32::PI);
+        let x = x - x.floor();
+        (self.f)(self.base, x)
     }
 }
 
-impl ContiniousWheel for HueWheel {
+impl ContiniousWheel for ColorWheel {
     fn draw(
         &self,
         framebuffer: &mut ugli::Framebuffer,
@@ -44,16 +49,18 @@ impl ContiniousWheel for HueWheel {
         hover: Option<Angle<f32>>,
     ) {
         let framebuffer_size = framebuffer.size().map(|x| x as f32);
+        let actual_color = hover.map_or(self.base, |angle| self.color_at(angle));
         ugli::draw(
             framebuffer,
-            &self.ctx.shaders.hue_wheel,
+            &self.program,
             ugli::DrawMode::TriangleFan,
             &self.ctx.quad,
             (
                 ugli::uniforms! {
                     u_transform: transform,
                     u_inner_radius: self.ctx.config.wheel.inner_radius,
-                    u_actual_color: Rgba::from(hover.map_or(self.base, |angle| self.color_at(angle))),
+                    u_actual_color: Rgba::from(actual_color),
+                    u_actual_color_hsla: vec4(actual_color.h, actual_color.s, actual_color.l, actual_color.a),
                 },
                 camera.uniforms(framebuffer_size),
             ),
@@ -66,7 +73,7 @@ impl ContiniousWheel for HueWheel {
     }
 }
 
-struct State {
+pub struct State {
     ctx: Ctx,
     framebuffer_size: vec2<f32>,
     ui_camera: Camera2d,
@@ -136,8 +143,27 @@ impl State {
             match event {
                 geng::Event::KeyPress { key } => match key {
                     geng::Key::H => {
-                        self.start_wheel(WheelType::Continious(Box::new(HueWheel::new(
-                            &self.ctx, self.color,
+                        self.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
+                            &self.ctx,
+                            &self.ctx.shaders.hue_wheel,
+                            self.color,
+                            |color, h| Hsla { h, ..color },
+                        ))));
+                    }
+                    geng::Key::S => {
+                        self.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
+                            &self.ctx,
+                            &self.ctx.shaders.saturation_wheel,
+                            self.color,
+                            |color, s| Hsla { s, ..color },
+                        ))));
+                    }
+                    geng::Key::L => {
+                        self.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
+                            &self.ctx,
+                            &self.ctx.shaders.lightness_wheel,
+                            self.color,
+                            |color, l| Hsla { l, ..color },
                         ))));
                     }
                     _ => {}
