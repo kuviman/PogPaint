@@ -14,11 +14,18 @@ impl Texture {
             bb: Aabb2::ZERO, // TODO
         }
     }
-    pub fn draw(&self, framebuffer: &mut ugli::Framebuffer, camera: &impl AbstractCamera2d) {
+    pub fn draw(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &impl AbstractCamera3d,
+        transform: mat4<f32>,
+    ) {
         let Some(texture) = &self.texture else { return };
         let framebuffer_size = framebuffer.size().map(|x| x as f32);
         let bb = self.bb.map(|x| x as f32);
-        let transform = mat3::translate(bb.center()) * mat3::scale(bb.size() / 2.0);
+        let transform = transform
+            * mat4::translate(bb.center().extend(0.0))
+            * mat4::scale(bb.size().extend(1.0) / 2.0);
         ugli::draw(
             framebuffer,
             &self.ctx.shaders.texture,

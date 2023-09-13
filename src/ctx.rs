@@ -11,10 +11,18 @@ pub struct WheelConfig {
     pub inner_radius: f32,
 }
 
+#[derive(Deserialize)]
+pub struct CameraConfig {
+    pub fov: f32,
+    pub rotation: f32,
+    pub attack: f32,
+    pub distance: f32,
+}
+
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
-    pub fov: f32,
+    pub camera: CameraConfig,
     pub default_brush_size: f32,
     pub background_color: Rgba<f32>,
     pub wheel: WheelConfig,

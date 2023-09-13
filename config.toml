@@ -2,6 +2,12 @@ background_color = "#999"
 fov = 300
 default_brush_size = 3
 
+[camera]
+fov = 60
+rotation = 30
+attack = 60
+distance = 100
+
 [ui]
 fov = 10
 

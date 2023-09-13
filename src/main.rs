@@ -1,12 +1,16 @@
 use geng::prelude::*;
 
+mod camera;
 mod color;
 mod ctx;
+mod plane;
 mod texture;
 mod wheel;
 
+use camera::Camera;
 use ctx::*;
-use texture::*;
+use plane::Plane;
+use texture::Texture;
 use wheel::*;
 
 #[derive(clap::Parser)]
@@ -18,12 +22,12 @@ struct Cli {
 pub struct State {
     ctx: Ctx,
     framebuffer_size: vec2<f32>,
-    camera: Camera2d,
+    camera: Camera,
     ui_camera: Camera2d,
     brush_size: f32,
     color: Hsla<f32>,
     wheel: Option<Wheel>,
-    texture: Texture,
+    plane: Plane,
     prev_draw_pos: Option<vec2<f32>>,
 }
 
@@ -32,10 +36,12 @@ impl State {
         Self {
             ctx: ctx.clone(),
             framebuffer_size: vec2::splat(1.0),
-            camera: Camera2d {
-                center: vec2::ZERO,
-                rotation: Angle::ZERO,
-                fov: ctx.config.fov,
+            camera: Camera {
+                pos: vec3::ZERO,
+                rot: Angle::from_degrees(ctx.config.camera.rotation),
+                fov: Angle::from_degrees(ctx.config.camera.fov),
+                attack: Angle::from_degrees(ctx.config.camera.attack),
+                distance: ctx.config.camera.distance,
             },
             ui_camera: Camera2d {
                 center: vec2::ZERO,
@@ -45,7 +51,10 @@ impl State {
             brush_size: ctx.config.default_brush_size,
             color: Hsla::new(0.0, 1.0, 0.5, 1.0),
             wheel: None,
-            texture: Texture::new(ctx),
+            plane: Plane {
+                texture: Texture::new(ctx),
+                transform: mat4::identity(),
+            },
             prev_draw_pos: None,
         }
     }
@@ -71,7 +80,7 @@ impl State {
             Some(1.0),
             None,
         );
-        self.texture.draw(framebuffer, &self.camera);
+        self.plane.draw(framebuffer, &self.camera);
         if let Some(wheel) = &self.wheel {
             let hover = self.calculate_hover(wheel);
             let transform =
@@ -110,32 +119,37 @@ impl State {
                     } else {
                         #[allow(clippy::collapsible_else_if)]
                         if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
-                            let cursor_pos = self.camera.screen_to_world(
-                                self.framebuffer_size,
-                                cursor_pos.map(|x| x as f32),
-                            );
-                            self.texture.draw_line(
-                                cursor_pos,
-                                cursor_pos,
-                                self.brush_size,
-                                self.color.into(),
-                            );
-                            self.prev_draw_pos = Some(cursor_pos);
+                            let ray = self
+                                .camera
+                                .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
+                            if let Some(pos) = self.plane.raycast(ray) {
+                                self.plane.texture.draw_line(
+                                    pos.texture,
+                                    pos.texture,
+                                    self.brush_size,
+                                    self.color.into(),
+                                );
+                                self.prev_draw_pos = Some(pos.texture);
+                            }
                         }
                     }
                 }
                 geng::Event::CursorMove { position } => {
-                    let cursor_pos = self
+                    let ray = self
                         .camera
-                        .screen_to_world(self.framebuffer_size, position.map(|x| x as f32));
-                    if let Some(prev) = self.prev_draw_pos {
-                        self.texture.draw_line(
-                            prev,
-                            cursor_pos,
-                            self.brush_size,
-                            self.color.into(),
-                        );
-                        self.prev_draw_pos = Some(cursor_pos);
+                        .pixel_ray(self.framebuffer_size, position.map(|x| x as f32));
+                    if let Some(pos) = self.plane.raycast(ray) {
+                        if let Some(prev) = self.prev_draw_pos {
+                            self.plane.texture.draw_line(
+                                prev,
+                                pos.texture,
+                                self.brush_size,
+                                self.color.into(),
+                            );
+                            self.prev_draw_pos = Some(pos.texture);
+                        }
+                    } else {
+                        self.prev_draw_pos = None;
                     }
                 }
                 geng::Event::MouseRelease {
