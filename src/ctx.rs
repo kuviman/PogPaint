@@ -14,6 +14,7 @@ pub struct WheelConfig {
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
+    pub fov: f32,
     pub background_color: Rgba<f32>,
     pub wheel: WheelConfig,
     pub ui: UiConfig,
@@ -23,6 +24,8 @@ pub struct Shaders {
     pub hue_wheel: Rc<ugli::Program>,
     pub saturation_wheel: Rc<ugli::Program>,
     pub lightness_wheel: Rc<ugli::Program>,
+    pub color: Rc<ugli::Program>,
+    pub texture: Rc<ugli::Program>,
 }
 
 impl geng::asset::Load for Shaders {
@@ -60,6 +63,13 @@ impl geng::asset::Load for Shaders {
                             .load::<String>(path.join("lightness_wheel.glsl"))
                             .await?,
                     )?,
+                ),
+                color: Rc::new(
+                    shader_lib.compile(&manager.load::<String>(path.join("color.glsl")).await?)?,
+                ),
+                texture: Rc::new(
+                    shader_lib
+                        .compile(&manager.load::<String>(path.join("texture.glsl")).await?)?,
                 ),
             })
         }

@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 geng.git = "https://github.com/geng-engine/geng"
+# geng.path = "../geng/crates/geng"
 serde = "1"

@@ -1,10 +1,12 @@
 use geng::prelude::*;
 
-mod ctx;
-mod wheel;
 mod color;
+mod ctx;
+mod texture;
+mod wheel;
 
 use ctx::*;
+use texture::*;
 use wheel::*;
 
 #[derive(clap::Parser)]
@@ -13,13 +15,15 @@ struct Cli {
     geng: geng::CliArgs,
 }
 
-
 pub struct State {
     ctx: Ctx,
     framebuffer_size: vec2<f32>,
+    camera: Camera2d,
     ui_camera: Camera2d,
     color: Hsla<f32>,
     wheel: Option<Wheel>,
+    texture: Texture,
+    prev_draw_pos: Option<vec2<f32>>,
 }
 
 impl State {
@@ -27,6 +31,11 @@ impl State {
         Self {
             ctx: ctx.clone(),
             framebuffer_size: vec2::splat(1.0),
+            camera: Camera2d {
+                center: vec2::ZERO,
+                rotation: Angle::ZERO,
+                fov: ctx.config.fov,
+            },
             ui_camera: Camera2d {
                 center: vec2::ZERO,
                 rotation: Angle::ZERO,
@@ -34,6 +43,8 @@ impl State {
             },
             color: Hsla::new(0.0, 1.0, 0.5, 1.0),
             wheel: None,
+            texture: Texture::new(ctx),
+            prev_draw_pos: None,
         }
     }
 
@@ -58,6 +69,7 @@ impl State {
             Some(1.0),
             None,
         );
+        self.texture.draw(framebuffer, &self.camera);
         if let Some(wheel) = &self.wheel {
             let hover = self.calculate_hover(wheel);
             let transform =
@@ -93,7 +105,31 @@ impl State {
                                 WheelType::Continious(typ) => typ.select(hover, &mut self),
                             }
                         }
+                    } else {
+                        #[allow(clippy::collapsible_else_if)]
+                        if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
+                            let cursor_pos = self.camera.screen_to_world(
+                                self.framebuffer_size,
+                                cursor_pos.map(|x| x as f32),
+                            );
+                            self.prev_draw_pos = Some(cursor_pos);
+                        }
                     }
+                }
+                geng::Event::CursorMove { position } => {
+                    let cursor_pos = self
+                        .camera
+                        .screen_to_world(self.framebuffer_size, position.map(|x| x as f32));
+                    if let Some(prev) = self.prev_draw_pos {
+                        self.texture
+                            .draw_line(prev, cursor_pos, 3.0, self.color.into());
+                        self.prev_draw_pos = Some(cursor_pos);
+                    }
+                }
+                geng::Event::MouseRelease {
+                    button: geng::MouseButton::Left,
+                } => {
+                    self.prev_draw_pos = None;
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Right,

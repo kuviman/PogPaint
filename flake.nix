@@ -8,10 +8,6 @@
         root = ./.;
         include = [
           "src"
-          "logicsider"
-          "autotile"
-          "levels"
-          "assets"
           "Cargo.lock"
           "Cargo.toml"
         ];
