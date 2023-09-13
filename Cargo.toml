@@ -1,0 +1,8 @@
+[package]
+name = "pog-paint"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+geng.git = "https://github.com/geng-engine/geng"
+serde = "1"
