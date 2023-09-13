@@ -11,7 +11,7 @@ pub struct Plane {
 }
 
 impl Plane {
-    pub fn draw(&mut self, framebuffer: &mut ugli::Framebuffer, camera: &impl AbstractCamera3d) {
+    pub fn draw(&self, framebuffer: &mut ugli::Framebuffer, camera: &impl AbstractCamera3d) {
         self.texture.draw(framebuffer, camera, self.transform);
     }
 

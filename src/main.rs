@@ -28,7 +28,8 @@ pub struct State {
     brush_size: f32,
     color: Hsla<f32>,
     wheel: Option<Wheel>,
-    plane: Plane,
+    planes: Vec<Plane>,
+    selected: Option<usize>,
     prev_draw_pos: Option<vec2<f32>>,
     transform: Option<gizmo::TransformMode>,
 }
@@ -53,10 +54,11 @@ impl State {
             brush_size: ctx.config.default_brush_size,
             color: Hsla::new(0.0, 1.0, 0.5, 1.0),
             wheel: None,
-            plane: Plane {
+            planes: vec![Plane {
                 texture: Texture::new(ctx),
                 transform: mat4::identity(),
-            },
+            }],
+            selected: Some(0),
             prev_draw_pos: None,
             transform: None,
         }
@@ -84,13 +86,18 @@ impl State {
             None,
         );
 
-        self.plane.draw(framebuffer, &self.camera);
+        for plane in &self.planes {
+            plane.draw(framebuffer, &self.camera);
+        }
 
         ugli::clear(framebuffer, None, Some(1.0), None);
         if self.ctx.geng.window().is_key_pressed(geng::Key::T) {
-            self.ctx
-                .gizmo
-                .draw(framebuffer, &self.camera, self.plane.transform);
+            if let Some(idx) = self.selected {
+                let plane = &self.planes[idx];
+                self.ctx
+                    .gizmo
+                    .draw(framebuffer, &self.camera, plane.transform);
+            }
         }
 
         if let Some(wheel) = &self.wheel {
@@ -131,16 +138,19 @@ impl State {
                         }
                     } else if self.ctx.geng.window().is_key_pressed(geng::Key::T) {
                         if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
-                            let ray = self
-                                .camera
-                                .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
-                            self.transform = Some(
-                                self.ctx
-                                    .gizmo
-                                    .raycast(self.plane.transform, ray)
-                                    .map(|v| (self.plane.transform * v.extend(0.0)).xyz()),
-                            );
-                            self.ctx.geng.window().lock_cursor();
+                            if let Some(idx) = self.selected {
+                                let plane = &self.planes[idx];
+                                let ray = self
+                                    .camera
+                                    .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
+                                self.transform = Some(
+                                    self.ctx
+                                        .gizmo
+                                        .raycast(plane.transform, ray)
+                                        .map(|v| (plane.transform * v.extend(0.0)).xyz()),
+                                );
+                                self.ctx.geng.window().lock_cursor();
+                            }
                         }
                     } else {
                         #[allow(clippy::collapsible_else_if)]
@@ -148,14 +158,17 @@ impl State {
                             let ray = self
                                 .camera
                                 .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
-                            if let Some(pos) = self.plane.raycast(ray) {
-                                self.plane.texture.draw_line(
-                                    pos.texture,
-                                    pos.texture,
-                                    self.brush_size,
-                                    self.color.into(),
-                                );
-                                self.prev_draw_pos = Some(pos.texture);
+                            if let Some(idx) = self.selected {
+                                let plane = &mut self.planes[idx];
+                                if let Some(pos) = plane.raycast(ray) {
+                                    plane.texture.draw_line(
+                                        pos.texture,
+                                        pos.texture,
+                                        self.brush_size,
+                                        self.color.into(),
+                                    );
+                                    self.prev_draw_pos = Some(pos.texture);
+                                }
                             }
                         }
                     }
@@ -178,18 +191,20 @@ impl State {
                 }
                 geng::Event::RawMouseMove { delta } => match self.transform {
                     Some(gizmo::TransformMode::Translate(v)) => {
-                        self.plane.transform = mat4::translate(
+                        let plane = &mut self.planes[self.selected.unwrap()];
+                        plane.transform = mat4::translate(
                             v * vec3::dot(
                                 v,
                                 (self.camera.view_matrix().inverse()
                                     * delta.map(|x| x as f32).extend(0.0).extend(0.0))
                                 .xyz(),
                             ),
-                        ) * self.plane.transform;
+                        ) * plane.transform;
                     }
                     Some(gizmo::TransformMode::Rotate(v)) => {
-                        let origin = (self.plane.transform * vec3::ZERO.extend(1.0)).into_3d();
-                        self.plane.transform = mat4::translate(origin)
+                        let plane = &mut self.planes[self.selected.unwrap()];
+                        let origin = (plane.transform * vec3::ZERO.extend(1.0)).into_3d();
+                        plane.transform = mat4::translate(origin)
                             * mat4::rotate(
                                 v,
                                 Angle::from_degrees(
@@ -197,7 +212,7 @@ impl State {
                                 ),
                             )
                             * mat4::translate(-origin)
-                            * self.plane.transform;
+                            * plane.transform;
                     }
                     None => {
                         self.camera.rot += Angle::from_degrees(
@@ -214,17 +229,23 @@ impl State {
                     let ray = self
                         .camera
                         .pixel_ray(self.framebuffer_size, position.map(|x| x as f32));
-                    if let Some(pos) = self.plane.raycast(ray) {
-                        if let Some(prev) = self.prev_draw_pos {
-                            self.plane.texture.draw_line(
-                                prev,
-                                pos.texture,
-                                self.brush_size,
-                                self.color.into(),
-                            );
-                            self.prev_draw_pos = Some(pos.texture);
+                    let mut drawn = false;
+                    if let Some(idx) = self.selected {
+                        let plane = &mut self.planes[idx];
+                        if let Some(pos) = plane.raycast(ray) {
+                            if let Some(prev) = self.prev_draw_pos {
+                                plane.texture.draw_line(
+                                    prev,
+                                    pos.texture,
+                                    self.brush_size,
+                                    self.color.into(),
+                                );
+                                self.prev_draw_pos = Some(pos.texture);
+                                drawn = true;
+                            }
                         }
-                    } else {
+                    }
+                    if !drawn {
                         self.prev_draw_pos = None;
                     }
                 }
@@ -282,6 +303,23 @@ impl State {
                         .clone()
                         .window()
                         .with_framebuffer(|framebuffer| self.draw(framebuffer));
+                }
+                geng::Event::KeyPress {
+                    key: geng::Key::Tab,
+                } => {
+                    if self.planes.is_empty() {
+                        self.selected = None;
+                    } else {
+                        self.selected =
+                            Some(self.selected.map_or(0, |idx| (idx + 1) % self.planes.len()));
+                    }
+                }
+                geng::Event::KeyPress { key: geng::Key::C } => {
+                    self.planes.push(Plane {
+                        texture: Texture::new(&self.ctx),
+                        transform: mat4::translate(self.camera.pos),
+                    });
+                    self.selected = Some(self.planes.len() - 1);
                 }
                 _ => {}
             }
