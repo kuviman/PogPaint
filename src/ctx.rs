@@ -26,6 +26,7 @@ pub struct Shaders {
     pub lightness_wheel: Rc<ugli::Program>,
     pub color: Rc<ugli::Program>,
     pub texture: Rc<ugli::Program>,
+    pub circle: Rc<ugli::Program>,
 }
 
 impl geng::asset::Load for Shaders {
@@ -66,6 +67,9 @@ impl geng::asset::Load for Shaders {
                 ),
                 color: Rc::new(
                     shader_lib.compile(&manager.load::<String>(path.join("color.glsl")).await?)?,
+                ),
+                circle: Rc::new(
+                    shader_lib.compile(&manager.load::<String>(path.join("circle.glsl")).await?)?,
                 ),
                 texture: Rc::new(
                     shader_lib

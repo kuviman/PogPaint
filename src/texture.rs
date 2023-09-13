@@ -51,7 +51,8 @@ impl Texture {
             ugli::ColorAttachment::Texture(self.texture.as_mut().unwrap()),
         );
         let framebuffer = &mut framebuffer;
-        let normal = (p2 - p1).normalize_or_zero().rotate_90();
+        let dir = (p2 - p1).normalize_or_zero();
+        let normal = dir.rotate_90();
         let transform = mat3::translate((p1 + p2) / 2.0)
             * mat3::from_orts((p2 - p1) / 2.0, normal * width / 2.0);
         ugli::draw(
@@ -67,6 +68,21 @@ impl Texture {
             },
             ugli::DrawParameters { ..default() },
         );
+        for p in [p1, p2] {
+            ugli::draw(
+                framebuffer,
+                &self.ctx.shaders.circle,
+                ugli::DrawMode::TriangleFan,
+                &self.ctx.quad,
+                ugli::uniforms! {
+                    u_projection_matrix: mat3::ortho(self.bb.map(|x| x as f32)),
+                    u_view_matrix: mat3::identity(),
+                    u_transform: mat3::translate(p) * mat3::scale_uniform(width / 2.0),
+                    u_color: color,
+                },
+                ugli::DrawParameters { ..default() },
+            );
+        }
     }
     fn ensure_bounds(&mut self, bb: Aabb2<i32>) {
         let new_bb = Aabb2 {
