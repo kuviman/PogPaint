@@ -41,7 +41,7 @@ impl Texture {
                 camera.uniforms(framebuffer_size),
             ),
             ugli::DrawParameters {
-                blend_mode: Some(ugli::BlendMode::premultiplied_alpha()),
+                depth_func: Some(ugli::DepthFunc::LessOrEqual),
                 ..default()
             },
         );
