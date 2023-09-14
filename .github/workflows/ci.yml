@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-web
+    permissions:
+      contents: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v2
