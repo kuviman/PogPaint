@@ -162,36 +162,26 @@ impl App {
                             }
                         }
                     } else {
-                        #[allow(clippy::collapsible_else_if)]
-                        if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
-                            let ray = self
-                                .state
-                                .camera
-                                .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
-                            self.stroke = self.tool.start(&mut self.state, ray);
-                        }
+                        let ray = self.ray(self.ctx.geng.window().cursor_position());
+                        self.stroke = self.tool.start(&mut self.state, ray);
                     }
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Left,
                 } => {
                     if let Some(stroke) = self.stroke.take() {
-                        let cursor_pos = self.ctx.geng.window().cursor_position().unwrap();
-                        let ray = self
-                            .state
-                            .camera
-                            .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
+                        let ray = self.ray(self.ctx.geng.window().cursor_position());
                         self.tool.end(stroke, &mut self.state, ray);
                     }
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
-                } => {
+                } if self.state.camera.distance != 0.0 => {
                     self.ctx.geng.window().lock_cursor();
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Middle,
-                } => {
+                } if self.state.camera.distance != 0.0 => {
                     self.ctx.geng.window().unlock_cursor();
                 }
                 geng::Event::RawMouseMove { delta } => {
@@ -202,15 +192,10 @@ impl App {
                             -delta.y as f32 * self.ctx.config.camera.sensitivity,
                         ))
                     .clamp_abs(Angle::from_degrees(90.0));
+                    self.handle_move(None);
                 }
                 geng::Event::CursorMove { position } => {
-                    let ray = self
-                        .state
-                        .camera
-                        .pixel_ray(self.framebuffer_size, position.map(|x| x as f32));
-                    if let Some(stroke) = &mut self.stroke {
-                        self.tool.resume(stroke, &mut self.state, ray);
-                    }
+                    self.handle_move(Some(position));
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Right,
@@ -252,10 +237,9 @@ impl App {
                         .map(|x| x as f32)
                         .rotate(self.state.camera.rot)
                         .extend(mov.z as f32);
-                    self.state.camera.pos += mov
-                        * delta_time.as_secs_f64() as f32
-                        * self.ctx.config.camera.move_speed
-                        * self.state.camera.distance;
+                    dbg!(mov);
+                    self.state.camera.pos +=
+                        mov * delta_time.as_secs_f64() as f32 * self.ctx.config.camera.move_speed;
 
                     self.ctx
                         .geng
@@ -292,6 +276,9 @@ impl App {
                 geng::Event::KeyPress { key: geng::Key::T } => {
                     self.switch_tool(TransformTool::new(&self.ctx));
                 }
+                geng::Event::KeyPress { key: geng::Key::F } => {
+                    self.toggle_first_person();
+                }
                 geng::Event::KeyPress { key: geng::Key::Q } => Palette::start(&mut self),
                 _ => {}
             }
@@ -303,6 +290,35 @@ impl App {
             return;
         }
         self.tool = AnyTool::new(tool);
+    }
+
+    fn toggle_first_person(&mut self) {
+        let forward = (self.state.camera.view_matrix().inverse() * vec4(0.0, 0.0, -1.0, 0.0)).xyz();
+        if self.state.camera.distance == 0.0 {
+            self.state.camera.distance = self.ctx.config.camera.distance;
+            self.state.camera.pos += forward * self.state.camera.distance;
+            self.ctx.geng.window().unlock_cursor();
+        } else {
+            self.state.camera.pos -= forward * self.state.camera.distance;
+            self.state.camera.distance = 0.0;
+            self.ctx.geng.window().lock_cursor();
+        }
+    }
+
+    fn handle_move(&mut self, cursor_position: Option<vec2<f64>>) {
+        let ray = self.ray(cursor_position);
+        if let Some(stroke) = &mut self.stroke {
+            self.tool.resume(stroke, &mut self.state, ray);
+        }
+    }
+
+    fn ray(&self, cursor_position: Option<vec2<f64>>) -> Ray {
+        self.state.camera.pixel_ray(
+            self.framebuffer_size,
+            cursor_position
+                .map(|p| p.map(|x| x as f32))
+                .unwrap_or(self.framebuffer_size / 2.0),
+        )
     }
 }
 
