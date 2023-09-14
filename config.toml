@@ -1,6 +1,18 @@
 background_color = "#444"
 fov = 300
 
+default_palette = [
+  "white",
+  "black",
+  "gray",
+  "red",
+  "green",
+  "blue",
+  "yellow",
+  "cyan",
+  "magenta",
+]
+
 [default_brush]
 size = 3
 color = "white"
