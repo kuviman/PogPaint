@@ -3,6 +3,9 @@ name = "pog-paint"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.geng]
+assets = ["assets", "shaders", "config.toml"]
+
 [dependencies]
 geng.git = "https://github.com/geng-engine/geng"
 # geng.path = "../geng/crates/geng"
