@@ -52,6 +52,7 @@ pub struct Config {
     pub wheel: WheelConfig,
     pub ui: UiConfig,
     pub grid: GridConfig,
+    pub default_palette: Vec<Rgba<f32>>,
 }
 
 pub struct Shaders {

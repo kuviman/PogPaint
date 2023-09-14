@@ -5,6 +5,7 @@ mod camera;
 mod color;
 mod ctx;
 mod gizmo;
+mod palette;
 mod plane;
 mod texture;
 mod tool;
@@ -14,6 +15,7 @@ mod wheel;
 use brush::Brush;
 use camera::Camera;
 use ctx::*;
+use palette::Palette;
 use plane::Plane;
 use texture::Texture;
 use tool::*;
@@ -78,24 +80,11 @@ impl App {
                 rotation: Angle::ZERO,
                 fov: ctx.config.ui.fov,
             },
-            tool: AnyTool::new(Brush::new(ctx)),
+            tool: AnyTool::new(Brush::default(ctx)),
             stroke: None,
             wheel: None,
             state: State::new(ctx),
         }
-    }
-
-    fn calculate_hover(&self, wheel: &Wheel) -> Option<Angle<f32>> {
-        self.ctx.geng.window().cursor_position().and_then(|pos| {
-            let pos = self
-                .ui_camera
-                .screen_to_world(self.framebuffer_size, pos.map(|x| x as f32));
-            let delta = pos - wheel.pos;
-            if delta.len() / self.ctx.config.wheel.size < self.ctx.config.wheel.inner_radius {
-                return None;
-            }
-            Some(delta.arg())
-        })
     }
 
     fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
@@ -137,15 +126,7 @@ impl App {
         ugli::clear(framebuffer, None, Some(1.0), None);
 
         if let Some(wheel) = &self.wheel {
-            let hover = self.calculate_hover(wheel);
-            let transform =
-                mat3::translate(wheel.pos) * mat3::scale_uniform(self.ctx.config.wheel.size);
-            match &wheel.typ {
-                WheelType::Items => todo!(),
-                WheelType::Continious(typ) => {
-                    typ.draw(framebuffer, &self.ui_camera, transform, hover);
-                }
-            }
+            wheel::draw(self, wheel, framebuffer);
         }
     }
 
@@ -166,9 +147,17 @@ impl App {
                     button: geng::MouseButton::Left,
                 } => {
                     if let Some(wheel) = self.wheel.take() {
-                        if let Some(hover) = self.calculate_hover(&wheel) {
+                        if let Some(hover) = wheel::calculate_hover(&self, &wheel) {
                             match wheel.typ {
-                                WheelType::Items => todo!(),
+                                WheelType::Items(typ) => {
+                                    let hovered =
+                                        wheel::items(&self, typ.item_count(), Some(hover))
+                                            .into_iter()
+                                            .position(|item| item.hovered);
+                                    if let Some(hovered) = hovered {
+                                        typ.select(hovered, &mut self);
+                                    }
+                                }
                                 WheelType::Continious(typ) => typ.select(hover, &mut self),
                             }
                         }
@@ -295,11 +284,12 @@ impl App {
                     self.state.selected = Some(self.state.planes.len() - 1);
                 }
                 geng::Event::KeyPress { key: geng::Key::B } => {
-                    self.switch_tool(Brush::new(&self.ctx));
+                    self.switch_tool(Brush::default(&self.ctx));
                 }
                 geng::Event::KeyPress { key: geng::Key::T } => {
                     self.switch_tool(TransformTool::new(&self.ctx));
                 }
+                geng::Event::KeyPress { key: geng::Key::Q } => Palette::start(&mut self),
                 _ => {}
             }
         }

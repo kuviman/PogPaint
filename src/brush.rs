@@ -7,12 +7,17 @@ pub struct Brush {
 }
 
 impl Brush {
-    pub fn new(ctx: &Ctx) -> Self {
+    pub fn default(ctx: &Ctx) -> Self {
+        Self::new(ctx, ctx.config.default_brush.color)
+    }
+
+    pub fn new(ctx: &Ctx, color: Rgba<f32>) -> Self {
         Self {
             size: ctx.config.default_brush.size,
-            color: Some(ctx.config.default_brush.color.into()),
+            color: Some(color.into()),
         }
     }
+
     fn actual_color(&self) -> Rgba<f32> {
         match self.color {
             Some(color) => color.into(),
