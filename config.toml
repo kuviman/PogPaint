@@ -1,6 +1,9 @@
 background_color = "#444"
 fov = 300
-default_brush_size = 3
+
+[default_brush]
+size = 3
+color = "white"
 
 [grid]
 cell_size = 16
