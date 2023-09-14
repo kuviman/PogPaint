@@ -1,0 +1,29 @@
+background_color = "#444"
+fov = 300
+default_brush_size = 3
+
+[grid]
+cell_size = 16
+line_count = 16
+color = "#777"
+
+[camera]
+fov = 60
+rotation = 30
+attack = 60
+distance = 100
+sensitivity = 0.05
+move_speed = 0.5
+zoom_speed = 1.002
+
+[gizmo]
+size = 16
+width = 0.1
+outline = 0.01
+
+[ui]
+fov = 10
+
+[wheel]
+size = 3
+inner_radius = 0.5
