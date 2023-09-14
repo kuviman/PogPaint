@@ -20,6 +20,11 @@ struct Cli {
     geng: geng::CliArgs,
 }
 
+struct Transform {
+    mode: gizmo::TransformMode,
+    raw_transform: mat4<f32>,
+}
+
 pub struct State {
     ctx: Ctx,
     framebuffer_size: vec2<f32>,
@@ -31,7 +36,7 @@ pub struct State {
     planes: Vec<Plane>,
     selected: Option<usize>,
     prev_draw_pos: Option<vec2<f32>>,
-    transform: Option<gizmo::TransformMode>,
+    transform: Option<Transform>,
     scribble: Option<geng::SoundEffect>,
 }
 
@@ -164,12 +169,14 @@ impl State {
                                 let ray = self
                                     .camera
                                     .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
-                                self.transform = Some(
-                                    self.ctx
+                                self.transform = Some(Transform {
+                                    mode: self
+                                        .ctx
                                         .gizmo
                                         .raycast(plane.transform, ray)
                                         .map(|v| (plane.transform * v.extend(0.0)).xyz()),
-                                );
+                                    raw_transform: plane.transform,
+                                });
                                 self.ctx.geng.window().lock_cursor();
                             }
                         }
@@ -217,30 +224,43 @@ impl State {
                 } => {
                     self.ctx.geng.window().unlock_cursor();
                 }
-                geng::Event::RawMouseMove { delta } => match self.transform {
-                    Some(gizmo::TransformMode::Translate(v)) => {
+                geng::Event::RawMouseMove { delta } => match &mut self.transform {
+                    Some(transform) => {
+                        match transform.mode {
+                            gizmo::TransformMode::Translate(v) => {
+                                transform.raw_transform = mat4::translate(
+                                    v * vec3::dot(
+                                        v,
+                                        (self.camera.view_matrix().inverse()
+                                            * delta.map(|x| x as f32).extend(0.0).extend(0.0))
+                                        .xyz(),
+                                    ),
+                                ) * transform.raw_transform;
+                            }
+                            gizmo::TransformMode::Rotate(v) => {
+                                let origin =
+                                    (transform.raw_transform * vec3::ZERO.extend(1.0)).into_3d();
+                                transform.raw_transform = mat4::translate(origin)
+                                    * mat4::rotate(
+                                        v,
+                                        Angle::from_degrees(
+                                            delta.y as f32 * self.ctx.config.camera.sensitivity,
+                                        ),
+                                    )
+                                    * mat4::translate(-origin)
+                                    * transform.raw_transform;
+                            }
+                        }
+                        // TODO round
                         let plane = &mut self.planes[self.selected.unwrap()];
-                        plane.transform = mat4::translate(
-                            v * vec3::dot(
-                                v,
-                                (self.camera.view_matrix().inverse()
-                                    * delta.map(|x| x as f32).extend(0.0).extend(0.0))
-                                .xyz(),
-                            ),
-                        ) * plane.transform;
-                    }
-                    Some(gizmo::TransformMode::Rotate(v)) => {
-                        let plane = &mut self.planes[self.selected.unwrap()];
-                        let origin = (plane.transform * vec3::ZERO.extend(1.0)).into_3d();
-                        plane.transform = mat4::translate(origin)
-                            * mat4::rotate(
-                                v,
-                                Angle::from_degrees(
-                                    delta.y as f32 * self.ctx.config.camera.sensitivity,
-                                ),
-                            )
-                            * mat4::translate(-origin)
-                            * plane.transform;
+                        plane.transform = transform.raw_transform.map(|x| x.round());
+                        let translation = plane.transform.col(3).xyz().map(|x| {
+                            (x / self.ctx.config.grid.cell_size).round()
+                                * self.ctx.config.grid.cell_size
+                        });
+                        plane.transform[(0, 3)] = translation.x;
+                        plane.transform[(1, 3)] = translation.y;
+                        plane.transform[(2, 3)] = translation.z;
                     }
                     None => {
                         self.camera.rot += Angle::from_degrees(
