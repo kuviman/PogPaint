@@ -286,6 +286,9 @@ impl App {
                 geng::Event::KeyPress { key: geng::Key::B } => {
                     self.switch_tool(Brush::default(&self.ctx));
                 }
+                geng::Event::KeyPress { key: geng::Key::E } => {
+                    self.switch_tool(Brush::eraser(&self.ctx));
+                }
                 geng::Event::KeyPress { key: geng::Key::T } => {
                     self.switch_tool(TransformTool::new(&self.ctx));
                 }

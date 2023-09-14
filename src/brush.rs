@@ -11,10 +11,18 @@ impl Brush {
         Self::new(ctx, ctx.config.default_brush.color)
     }
 
+    pub fn eraser(ctx: &Ctx) -> Self {
+        Self::new_impl(ctx, None)
+    }
+
     pub fn new(ctx: &Ctx, color: Rgba<f32>) -> Self {
+        Self::new_impl(ctx, Some(color))
+    }
+
+    fn new_impl(ctx: &Ctx, color: Option<Rgba<f32>>) -> Self {
         Self {
             size: ctx.config.default_brush.size,
-            color: Some(color.into()),
+            color: color.map(Into::into),
         }
     }
 
