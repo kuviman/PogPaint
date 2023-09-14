@@ -36,12 +36,18 @@ pub struct GridConfig {
     pub color: Rgba<f32>,
 }
 
+#[derive(Deserialize)]
+pub struct DefaultBrushConfig {
+    pub size: f32,
+    pub color: Rgba<f32>,
+}
+
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
     pub gizmo: GizmoConfig,
     pub camera: CameraConfig,
-    pub default_brush_size: f32,
+    pub default_brush: DefaultBrushConfig,
     pub background_color: Rgba<f32>,
     pub wheel: WheelConfig,
     pub ui: UiConfig,

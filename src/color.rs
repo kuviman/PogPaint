@@ -56,40 +56,41 @@ impl ContiniousWheel for ColorWheel {
         );
     }
 
-    fn select(&self, hover: Angle<f32>, state: &mut State) {
-        state.color = self.color_at(hover);
+    fn select(&self, hover: Angle<f32>, app: &mut App) {
+        todo!()
+        // state.color = self.color_at(hover);
     }
 }
 
-pub fn handle_event(state: &mut State, event: &geng::Event) {
-    let ctx = &state.ctx;
-    if let geng::Event::KeyPress { key } = event {
-        match key {
-            geng::Key::H => {
-                state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
-                    ctx,
-                    &ctx.shaders.hue_wheel,
-                    state.color,
-                    |color, h| Hsla { h, ..color },
-                ))));
-            }
-            geng::Key::J => {
-                state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
-                    ctx,
-                    &ctx.shaders.saturation_wheel,
-                    state.color,
-                    |color, s| Hsla { s, ..color },
-                ))));
-            }
-            geng::Key::L => {
-                state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
-                    ctx,
-                    &ctx.shaders.lightness_wheel,
-                    state.color,
-                    |color, l| Hsla { l, ..color },
-                ))));
-            }
-            _ => {}
-        }
-    }
-}
+// pub fn handle_event(state: &mut App, event: &geng::Event) {
+//     let ctx = &state.ctx;
+//     if let geng::Event::KeyPress { key } = event {
+//         match key {
+//             geng::Key::H => {
+//                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
+//                     ctx,
+//                     &ctx.shaders.hue_wheel,
+//                     state.color,
+//                     |color, h| Hsla { h, ..color },
+//                 ))));
+//             }
+//             geng::Key::J => {
+//                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
+//                     ctx,
+//                     &ctx.shaders.saturation_wheel,
+//                     state.color,
+//                     |color, s| Hsla { s, ..color },
+//                 ))));
+//             }
+//             geng::Key::L => {
+//                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
+//                     ctx,
+//                     &ctx.shaders.lightness_wheel,
+//                     state.color,
+//                     |color, l| Hsla { l, ..color },
+//                 ))));
+//             }
+//             _ => {}
+//         }
+//     }
+// }

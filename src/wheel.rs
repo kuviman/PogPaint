@@ -8,7 +8,7 @@ pub trait ContiniousWheel {
         transform: mat3<f32>,
         hover: Option<Angle<f32>>,
     );
-    fn select(&self, hover: Angle<f32>, state: &mut State);
+    fn select(&self, hover: Angle<f32>, app: &mut App);
 }
 
 pub enum WheelType {
@@ -20,4 +20,3 @@ pub struct Wheel {
     pub pos: vec2<f32>,
     pub typ: WheelType,
 }
-

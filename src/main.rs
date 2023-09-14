@@ -1,17 +1,23 @@
 use geng::prelude::*;
 
+mod brush;
 mod camera;
 mod color;
 mod ctx;
 mod gizmo;
 mod plane;
 mod texture;
+mod tool;
+mod transform;
 mod wheel;
 
+use brush::Brush;
 use camera::Camera;
 use ctx::*;
 use plane::Plane;
 use texture::Texture;
+use tool::*;
+use transform::TransformTool;
 use wheel::*;
 
 #[derive(clap::Parser)]
@@ -20,31 +26,18 @@ struct Cli {
     geng: geng::CliArgs,
 }
 
-struct Transform {
-    mode: gizmo::TransformMode,
-    raw_transform: mat4<f32>,
-}
-
 pub struct State {
     ctx: Ctx,
-    framebuffer_size: vec2<f32>,
     camera: Camera,
-    ui_camera: Camera2d,
-    brush_size: f32,
-    color: Hsla<f32>,
-    wheel: Option<Wheel>,
     planes: Vec<Plane>,
     selected: Option<usize>,
-    prev_draw_pos: Option<vec2<f32>>,
-    transform: Option<Transform>,
     scribble: Option<geng::SoundEffect>,
 }
 
 impl State {
-    pub async fn new(ctx: &Ctx) -> Self {
+    pub fn new(ctx: &Ctx) -> Self {
         Self {
             ctx: ctx.clone(),
-            framebuffer_size: vec2::splat(1.0),
             camera: Camera {
                 pos: vec3::ZERO,
                 rot: Angle::from_degrees(ctx.config.camera.rotation),
@@ -52,22 +45,43 @@ impl State {
                 attack: Angle::from_degrees(ctx.config.camera.attack),
                 distance: ctx.config.camera.distance,
             },
-            ui_camera: Camera2d {
-                center: vec2::ZERO,
-                rotation: Angle::ZERO,
-                fov: ctx.config.ui.fov,
-            },
-            brush_size: ctx.config.default_brush_size,
-            color: Hsla::new(0.0, 1.0, 0.5, 1.0),
-            wheel: None,
             planes: vec![Plane {
                 texture: Texture::new(ctx),
                 transform: mat4::identity(),
             }],
             selected: Some(0),
-            prev_draw_pos: None,
-            transform: None,
             scribble: None,
+        }
+    }
+    pub fn start_scribble(&mut self) {
+        self.scribble = Some(self.ctx.assets.scribble.play());
+    }
+}
+
+pub struct App {
+    ctx: Ctx,
+    wheel: Option<Wheel>,
+    ui_camera: Camera2d,
+    framebuffer_size: vec2<f32>,
+    tool: AnyTool,
+    stroke: Option<AnyStroke>,
+    state: State,
+}
+
+impl App {
+    pub async fn new(ctx: &Ctx) -> Self {
+        Self {
+            ctx: ctx.clone(),
+            framebuffer_size: vec2::splat(1.0),
+            ui_camera: Camera2d {
+                center: vec2::ZERO,
+                rotation: Angle::ZERO,
+                fov: ctx.config.ui.fov,
+            },
+            tool: AnyTool::new(Brush::new(ctx)),
+            stroke: None,
+            wheel: None,
+            state: State::new(ctx),
         }
     }
 
@@ -93,13 +107,14 @@ impl State {
             None,
         );
 
-        for plane in &self.planes {
-            plane.draw(framebuffer, &self.camera);
+        for plane in &self.state.planes {
+            plane.draw(framebuffer, &self.state.camera);
         }
 
-        if let Some(idx) = self.selected {
-            let transform =
-                self.planes[idx].transform * mat4::scale_uniform(self.ctx.config.grid.cell_size);
+        // Grid
+        if let Some(idx) = self.state.selected {
+            let transform = self.state.planes[idx].transform
+                * mat4::scale_uniform(self.ctx.config.grid.cell_size);
             ugli::draw(
                 framebuffer,
                 &self.ctx.shaders.color_3d,
@@ -110,21 +125,16 @@ impl State {
                         u_transform: transform,
                         u_color: self.ctx.config.grid.color,
                     },
-                    self.camera.uniforms(self.framebuffer_size),
+                    self.state.camera.uniforms(self.framebuffer_size),
                 ),
                 ugli::DrawParameters { ..default() },
             );
         }
 
+        self.tool
+            .draw(framebuffer, self.stroke.as_mut(), &mut self.state);
+
         ugli::clear(framebuffer, None, Some(1.0), None);
-        if self.ctx.geng.window().is_key_pressed(geng::Key::T) {
-            if let Some(idx) = self.selected {
-                let plane = &self.planes[idx];
-                self.ctx
-                    .gizmo
-                    .draw(framebuffer, &self.camera, plane.transform);
-            }
-        }
 
         if let Some(wheel) = &self.wheel {
             let hover = self.calculate_hover(wheel);
@@ -150,7 +160,7 @@ impl State {
         let mut events = self.ctx.geng.window().events();
         let mut timer = Timer::new();
         while let Some(event) = events.next().await {
-            color::handle_event(&mut self, &event);
+            // TODO color::handle_event(&mut self, &event);
             match event {
                 geng::Event::MousePress {
                     button: geng::MouseButton::Left,
@@ -162,57 +172,28 @@ impl State {
                                 WheelType::Continious(typ) => typ.select(hover, &mut self),
                             }
                         }
-                    } else if self.ctx.geng.window().is_key_pressed(geng::Key::T) {
-                        if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
-                            if let Some(idx) = self.selected {
-                                let plane = &self.planes[idx];
-                                let ray = self
-                                    .camera
-                                    .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
-                                self.transform = Some(Transform {
-                                    mode: self
-                                        .ctx
-                                        .gizmo
-                                        .raycast(plane.transform, ray)
-                                        .map(|v| (plane.transform * v.extend(0.0)).xyz()),
-                                    raw_transform: plane.transform,
-                                });
-                                self.ctx.geng.window().lock_cursor();
-                            }
-                        }
                     } else {
                         #[allow(clippy::collapsible_else_if)]
                         if let Some(cursor_pos) = self.ctx.geng.window().cursor_position() {
                             let ray = self
+                                .state
                                 .camera
                                 .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
-                            if let Some(idx) = self.selected {
-                                let plane = &mut self.planes[idx];
-                                if let Some(pos) = plane.raycast(ray) {
-                                    plane.texture.draw_line(
-                                        pos.texture,
-                                        pos.texture,
-                                        self.brush_size,
-                                        self.color.into(),
-                                    );
-                                    self.prev_draw_pos = Some(pos.texture);
-                                    self.scribble = Some(self.ctx.assets.scribble.play());
-                                }
-                            }
+                            self.stroke = self.tool.start(&mut self.state, ray);
                         }
                     }
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Left,
                 } => {
-                    if self.transform.is_some() {
-                        self.ctx.geng.window().unlock_cursor();
-                        self.transform = None;
+                    if let Some(stroke) = self.stroke.take() {
+                        let cursor_pos = self.ctx.geng.window().cursor_position().unwrap();
+                        let ray = self
+                            .state
+                            .camera
+                            .pixel_ray(self.framebuffer_size, cursor_pos.map(|x| x as f32));
+                        self.tool.end(stroke, &mut self.state, ray);
                     }
-                    if let Some(mut sfx) = self.scribble.take() {
-                        sfx.stop();
-                    }
-                    self.prev_draw_pos = None;
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
@@ -224,77 +205,22 @@ impl State {
                 } => {
                     self.ctx.geng.window().unlock_cursor();
                 }
-                geng::Event::RawMouseMove { delta } => match &mut self.transform {
-                    Some(transform) => {
-                        match transform.mode {
-                            gizmo::TransformMode::Translate(v) => {
-                                transform.raw_transform = mat4::translate(
-                                    v * vec3::dot(
-                                        v,
-                                        (self.camera.view_matrix().inverse()
-                                            * delta.map(|x| x as f32).extend(0.0).extend(0.0))
-                                        .xyz(),
-                                    ),
-                                ) * transform.raw_transform;
-                            }
-                            gizmo::TransformMode::Rotate(v) => {
-                                let origin =
-                                    (transform.raw_transform * vec3::ZERO.extend(1.0)).into_3d();
-                                transform.raw_transform = mat4::translate(origin)
-                                    * mat4::rotate(
-                                        v,
-                                        Angle::from_degrees(
-                                            delta.y as f32 * self.ctx.config.camera.sensitivity,
-                                        ),
-                                    )
-                                    * mat4::translate(-origin)
-                                    * transform.raw_transform;
-                            }
-                        }
-                        // TODO round
-                        let plane = &mut self.planes[self.selected.unwrap()];
-                        plane.transform = transform.raw_transform.map(|x| x.round());
-                        let translation = plane.transform.col(3).xyz().map(|x| {
-                            (x / self.ctx.config.grid.cell_size).round()
-                                * self.ctx.config.grid.cell_size
-                        });
-                        plane.transform[(0, 3)] = translation.x;
-                        plane.transform[(1, 3)] = translation.y;
-                        plane.transform[(2, 3)] = translation.z;
-                    }
-                    None => {
-                        self.camera.rot += Angle::from_degrees(
-                            -delta.x as f32 * self.ctx.config.camera.sensitivity,
-                        );
-                        self.camera.attack = (self.camera.attack
-                            + Angle::from_degrees(
-                                -delta.y as f32 * self.ctx.config.camera.sensitivity,
-                            ))
-                        .clamp_abs(Angle::from_degrees(90.0));
-                    }
-                },
+                geng::Event::RawMouseMove { delta } => {
+                    self.state.camera.rot +=
+                        Angle::from_degrees(-delta.x as f32 * self.ctx.config.camera.sensitivity);
+                    self.state.camera.attack = (self.state.camera.attack
+                        + Angle::from_degrees(
+                            -delta.y as f32 * self.ctx.config.camera.sensitivity,
+                        ))
+                    .clamp_abs(Angle::from_degrees(90.0));
+                }
                 geng::Event::CursorMove { position } => {
                     let ray = self
+                        .state
                         .camera
                         .pixel_ray(self.framebuffer_size, position.map(|x| x as f32));
-                    let mut drawn = false;
-                    if let Some(idx) = self.selected {
-                        let plane = &mut self.planes[idx];
-                        if let Some(pos) = plane.raycast(ray) {
-                            if let Some(prev) = self.prev_draw_pos {
-                                plane.texture.draw_line(
-                                    prev,
-                                    pos.texture,
-                                    self.brush_size,
-                                    self.color.into(),
-                                );
-                                self.prev_draw_pos = Some(pos.texture);
-                                drawn = true;
-                            }
-                        }
-                    }
-                    if !drawn {
-                        self.prev_draw_pos = None;
+                    if let Some(stroke) = &mut self.stroke {
+                        self.tool.resume(stroke, &mut self.state, ray);
                     }
                 }
                 geng::Event::MousePress {
@@ -303,7 +229,8 @@ impl State {
                     self.wheel = None;
                 }
                 geng::Event::Wheel { delta } => {
-                    self.camera.distance *= self.ctx.config.camera.zoom_speed.powf(-delta as f32);
+                    self.state.camera.distance *=
+                        self.ctx.config.camera.zoom_speed.powf(-delta as f32);
                 }
                 geng::Event::Draw => {
                     let delta_time = timer.tick();
@@ -334,12 +261,12 @@ impl State {
                     let mov = mov
                         .xy()
                         .map(|x| x as f32)
-                        .rotate(self.camera.rot)
+                        .rotate(self.state.camera.rot)
                         .extend(mov.z as f32);
-                    self.camera.pos += mov
+                    self.state.camera.pos += mov
                         * delta_time.as_secs_f64() as f32
                         * self.ctx.config.camera.move_speed
-                        * self.camera.distance;
+                        * self.state.camera.distance;
 
                     self.ctx
                         .geng
@@ -350,23 +277,39 @@ impl State {
                 geng::Event::KeyPress {
                     key: geng::Key::Tab,
                 } => {
-                    if self.planes.is_empty() {
-                        self.selected = None;
+                    if self.state.planes.is_empty() {
+                        self.state.selected = None;
                     } else {
-                        self.selected =
-                            Some(self.selected.map_or(0, |idx| (idx + 1) % self.planes.len()));
+                        self.state.selected = Some(
+                            self.state
+                                .selected
+                                .map_or(0, |idx| (idx + 1) % self.state.planes.len()),
+                        );
                     }
                 }
                 geng::Event::KeyPress { key: geng::Key::C } => {
-                    self.planes.push(Plane {
+                    self.state.planes.push(Plane {
                         texture: Texture::new(&self.ctx),
-                        transform: mat4::translate(self.camera.pos),
+                        transform: mat4::translate(self.state.camera.pos),
                     });
-                    self.selected = Some(self.planes.len() - 1);
+                    self.state.selected = Some(self.state.planes.len() - 1);
+                }
+                geng::Event::KeyPress { key: geng::Key::B } => {
+                    self.switch_tool(Brush::new(&self.ctx));
+                }
+                geng::Event::KeyPress { key: geng::Key::T } => {
+                    self.switch_tool(TransformTool::new(&self.ctx));
                 }
                 _ => {}
             }
         }
+    }
+
+    fn switch_tool(&mut self, tool: impl Tool) {
+        if self.stroke.is_some() {
+            return;
+        }
+        self.tool = AnyTool::new(tool);
     }
 }
 
@@ -380,7 +323,7 @@ fn main() {
             options
         },
         |geng| async move {
-            State::new(&Ctx::new(&geng).await).await.run().await;
+            App::new(&Ctx::new(&geng).await).await.run().await;
         },
     );
 }
