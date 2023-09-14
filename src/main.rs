@@ -32,6 +32,7 @@ pub struct State {
     selected: Option<usize>,
     prev_draw_pos: Option<vec2<f32>>,
     transform: Option<gizmo::TransformMode>,
+    scribble: Option<geng::SoundEffect>,
 }
 
 impl State {
@@ -61,6 +62,7 @@ impl State {
             selected: Some(0),
             prev_draw_pos: None,
             transform: None,
+            scribble: None,
         }
     }
 
@@ -88,6 +90,25 @@ impl State {
 
         for plane in &self.planes {
             plane.draw(framebuffer, &self.camera);
+        }
+
+        if let Some(idx) = self.selected {
+            let transform =
+                self.planes[idx].transform * mat4::scale_uniform(self.ctx.config.grid.cell_size);
+            ugli::draw(
+                framebuffer,
+                &self.ctx.shaders.color_3d,
+                ugli::DrawMode::Lines { line_width: 1.0 },
+                &*self.ctx.grid,
+                (
+                    ugli::uniforms! {
+                        u_transform: transform,
+                        u_color: self.ctx.config.grid.color,
+                    },
+                    self.camera.uniforms(self.framebuffer_size),
+                ),
+                ugli::DrawParameters { ..default() },
+            );
         }
 
         ugli::clear(framebuffer, None, Some(1.0), None);
@@ -168,6 +189,7 @@ impl State {
                                         self.color.into(),
                                     );
                                     self.prev_draw_pos = Some(pos.texture);
+                                    self.scribble = Some(self.ctx.assets.scribble.play());
                                 }
                             }
                         }
@@ -175,9 +197,15 @@ impl State {
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Left,
-                } if self.transform.is_some() => {
-                    self.ctx.geng.window().unlock_cursor();
-                    self.transform = None;
+                } => {
+                    if self.transform.is_some() {
+                        self.ctx.geng.window().unlock_cursor();
+                        self.transform = None;
+                    }
+                    if let Some(mut sfx) = self.scribble.take() {
+                        sfx.stop();
+                    }
+                    self.prev_draw_pos = None;
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
@@ -248,11 +276,6 @@ impl State {
                     if !drawn {
                         self.prev_draw_pos = None;
                     }
-                }
-                geng::Event::MouseRelease {
-                    button: geng::MouseButton::Left,
-                } => {
-                    self.prev_draw_pos = None;
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Right,

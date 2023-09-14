@@ -65,7 +65,7 @@ impl Texture {
             * mat3::from_orts((p2 - p1) / 2.0, normal * width / 2.0);
         ugli::draw(
             framebuffer,
-            &self.ctx.shaders.color,
+            &self.ctx.shaders.color_2d,
             ugli::DrawMode::TriangleFan,
             &*self.ctx.quad,
             ugli::uniforms! {

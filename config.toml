@@ -1,6 +1,11 @@
-background_color = "#999"
+background_color = "#444"
 fov = 300
 default_brush_size = 3
+
+[grid]
+cell_size = 16
+line_count = 16
+color = "#777"
 
 [camera]
 fov = 60
