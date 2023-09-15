@@ -73,9 +73,12 @@ impl Texture {
                 max: bb.max.map(|x| x.ceil() as i32),
             }
         });
+        let Some(texture) = &mut self.texture else {
+            return;
+        };
         let mut framebuffer = ugli::Framebuffer::new_color(
             self.ctx.geng.ugli(),
-            ugli::ColorAttachment::Texture(self.texture.as_mut().unwrap()),
+            ugli::ColorAttachment::Texture(texture),
         );
         let framebuffer = &mut framebuffer;
         let dir = (p2 - p1).normalize_or_zero();
@@ -117,6 +120,11 @@ impl Texture {
             min: self.bb.min.zip(bb.min).map(|(a, b)| i32::min(a, b)),
             max: self.bb.max.zip(bb.max).map(|(a, b)| i32::max(a, b)),
         };
+        if new_bb.width() as usize > self.ctx.config.max_texture_size
+            || new_bb.height() as usize > self.ctx.config.max_texture_size
+        {
+            return;
+        }
         if self.bb != new_bb {
             let mut new_texture = ugli::Texture::new_uninitialized(
                 self.ctx.geng.ugli(),

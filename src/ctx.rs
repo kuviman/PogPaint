@@ -57,6 +57,7 @@ pub struct StatusConfig {
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
+    pub max_texture_size: usize,
     pub gizmo: GizmoConfig,
     pub camera: CameraConfig,
     pub default_brush: DefaultBrushConfig,
