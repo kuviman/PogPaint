@@ -12,9 +12,10 @@ void main() {
 #endif
 
 #ifdef FRAGMENT_SHADER
+uniform float u_radius;
 uniform vec4 u_color;
 void main() {
-  if (length(v_pos) > 1.0) {
+  if (length(v_pos) > u_radius) {
     discard;
   }
   gl_FragColor = u_color;

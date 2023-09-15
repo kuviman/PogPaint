@@ -38,7 +38,7 @@ pub struct GridConfig {
 
 #[derive(Deserialize)]
 pub struct DefaultBrushConfig {
-    pub size: f32,
+    pub size: usize,
     pub color: Rgba<f32>,
 }
 

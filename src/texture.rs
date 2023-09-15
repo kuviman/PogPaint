@@ -85,8 +85,9 @@ impl Texture {
                 ugli::uniforms! {
                     u_projection_matrix: mat3::ortho(self.bb.map(|x| x as f32)),
                     u_view_matrix: mat3::identity(),
-                    u_transform: mat3::translate(p) * mat3::scale_uniform(width / 2.0),
+                    u_transform: mat3::translate(p) * mat3::scale_uniform(width / 2.0 + 0.5),
                     u_color: color,
+                    u_radius: (width / 2.0) / (width / 2.0 + 0.5),
                 },
                 ugli::DrawParameters { ..default() },
             );

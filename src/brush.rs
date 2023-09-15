@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct Brush {
-    size: f32,
+    size: usize,
     /// None means eraser
     color: Option<Hsla<f32>>,
 }
@@ -32,6 +32,19 @@ impl Brush {
             None => Rgba::TRANSPARENT_BLACK,
         }
     }
+
+    fn round_pos(&self, pos: vec2<f32>) -> vec2<f32> {
+        if self.size % 2 == 0 {
+            pos.map(|x| x.round())
+        } else {
+            pos.map(|x| (x - 0.5).round() + 0.5)
+        }
+    }
+
+    fn draw_width(&self) -> f32 {
+        let rounded = (self.size as f32 / 2.0).floor() * 2.0;
+        (rounded + self.size as f32) / 2.0
+    }
 }
 
 pub struct BrushStroke {
@@ -44,13 +57,12 @@ impl Tool for Brush {
         if let Some(idx) = state.selected {
             let plane = &mut state.planes[idx];
             if let Some(pos) = plane.raycast(ray) {
+                let pos = self.round_pos(pos);
                 plane
                     .texture
-                    .draw_line(pos.texture, pos.texture, self.size, self.actual_color());
+                    .draw_line(pos, pos, self.draw_width(), self.actual_color());
                 state.start_scribble();
-                return Some(BrushStroke {
-                    prev_draw_pos: pos.texture,
-                });
+                return Some(BrushStroke { prev_draw_pos: pos });
             }
         }
         None
@@ -59,13 +71,14 @@ impl Tool for Brush {
         if let Some(idx) = state.selected {
             let plane = &mut state.planes[idx];
             if let Some(pos) = plane.raycast(ray) {
+                let pos = self.round_pos(pos);
                 plane.texture.draw_line(
                     stroke.prev_draw_pos,
-                    pos.texture,
-                    self.size,
+                    pos,
+                    self.draw_width(),
                     self.actual_color(),
                 );
-                stroke.prev_draw_pos = pos.texture;
+                stroke.prev_draw_pos = pos;
             }
         }
     }
@@ -97,10 +110,11 @@ impl Tool for Brush {
                 };
 
                 if let Some(pos) = preview_plane.raycast(ray) {
+                    let pos = self.round_pos(pos);
                     preview_plane.texture.draw_line(
-                        pos.texture,
-                        pos.texture,
-                        self.size,
+                        pos,
+                        pos,
+                        self.draw_width(),
                         self.actual_color(),
                     );
 

@@ -1,10 +1,5 @@
 use super::*;
 
-pub struct Position {
-    pub texture: vec2<f32>,
-    pub world: vec3<f32>,
-}
-
 pub struct Plane {
     pub texture: Texture,
     pub transform: mat4<f32>,
@@ -15,7 +10,7 @@ impl Plane {
         self.texture.draw(framebuffer, camera, self.transform);
     }
 
-    pub fn raycast(&self, ray: geng::camera::Ray) -> Option<Position> {
+    pub fn raycast(&self, ray: geng::camera::Ray) -> Option<vec2<f32>> {
         let inv_transform = self.transform.inverse();
         let local_ray = geng::camera::Ray {
             from: (inv_transform * ray.from.extend(1.0)).into_3d(),
@@ -28,9 +23,6 @@ impl Plane {
         if t <= 0.0 {
             return None;
         }
-        Some(Position {
-            texture: (local_ray.from + local_ray.dir * t).xy(),
-            world: ray.from + ray.dir * t,
-        })
+        Some((local_ray.from + local_ray.dir * t).xy())
     }
 }
