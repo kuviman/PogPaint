@@ -276,7 +276,9 @@ impl App {
                 geng::Event::KeyPress { key: geng::Key::C } => {
                     self.state.planes.push(Plane {
                         texture: Texture::new(&self.ctx),
-                        transform: mat4::translate(self.state.camera.pos),
+                        transform: self
+                            .ctx
+                            .round_matrix(mat4::translate(self.state.camera.pos)),
                     });
                     self.state.selected = Some(self.state.planes.len() - 1);
                 }

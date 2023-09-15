@@ -257,3 +257,51 @@ impl Ctx {
         }
     }
 }
+
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Eq)]
+pub enum Precision {
+    Unbounded,
+    Pixel,
+    Grid,
+}
+
+impl Ctx {
+    pub fn precision(&self) -> Precision {
+        if self.geng.window().is_key_pressed(geng::Key::ControlLeft) {
+            Precision::Pixel
+        } else if self.geng.window().is_key_pressed(geng::Key::AltLeft) {
+            Precision::Unbounded
+        } else {
+            Precision::Grid
+        }
+    }
+    pub fn round_pos(&self, pos: vec2<f32>) -> vec2<f32> {
+        let precision = self.precision();
+        let mut pos = pos;
+        if precision >= Precision::Pixel {
+            pos = pos.map(|x| x.round());
+        }
+        if precision >= Precision::Grid {
+            pos =
+                pos.map(|x| (x / self.config.grid.cell_size).round() * self.config.grid.cell_size);
+        }
+        pos
+    }
+    pub fn round_matrix(&self, m: mat4<f32>) -> mat4<f32> {
+        let mut m = m;
+        let precision = self.precision();
+        if precision >= Precision::Pixel {
+            m = m.map(|x| x.round());
+        }
+        if precision >= Precision::Grid {
+            let translation = m
+                .col(3)
+                .xyz()
+                .map(|x| (x / self.config.grid.cell_size).round() * self.config.grid.cell_size);
+            m[(0, 3)] = translation.x;
+            m[(1, 3)] = translation.y;
+            m[(2, 3)] = translation.z;
+        }
+        m
+    }
+}
