@@ -237,7 +237,6 @@ impl App {
                         .map(|x| x as f32)
                         .rotate(self.state.camera.rot)
                         .extend(mov.z as f32);
-                    dbg!(mov);
                     self.state.camera.pos +=
                         mov * delta_time.as_secs_f64() as f32 * self.ctx.config.camera.move_speed;
 
