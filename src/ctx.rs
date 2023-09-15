@@ -42,6 +42,18 @@ pub struct DefaultBrushConfig {
     pub color: Rgba<f32>,
 }
 
+#[derive(Deserialize)]
+pub enum StatusPos {
+    Top,
+    Bottom,
+}
+
+#[derive(Deserialize)]
+pub struct StatusConfig {
+    pub pos: StatusPos,
+    pub width: f32,
+}
+
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
@@ -53,6 +65,7 @@ pub struct Config {
     pub ui: UiConfig,
     pub grid: GridConfig,
     pub default_palette: Vec<Rgba<f32>>,
+    pub status: StatusConfig,
 }
 
 pub struct Shaders {

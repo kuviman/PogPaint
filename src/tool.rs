@@ -14,6 +14,8 @@ pub trait Tool: 'static {
         framebuffer: &mut ugli::Framebuffer,
         stroke: Option<&mut Self::Stroke>,
         state: &mut State,
+        ui_camera: &dyn AbstractCamera2d,
+        status_pos: mat3<f32>,
     );
 }
 
@@ -47,9 +49,16 @@ impl AnyTool {
         framebuffer: &mut ugli::Framebuffer,
         stroke: Option<&mut AnyStroke>,
         state: &mut State,
+        ui_camera: &dyn AbstractCamera2d,
+        status_pos: mat3<f32>,
     ) {
-        self.inner
-            .draw(framebuffer, stroke.map(|stroke| &mut *stroke.inner), state)
+        self.inner.draw(
+            framebuffer,
+            stroke.map(|stroke| &mut *stroke.inner),
+            state,
+            ui_camera,
+            status_pos,
+        )
     }
 }
 
@@ -62,6 +71,8 @@ trait DynTool {
         framebuffer: &mut ugli::Framebuffer,
         stroke: Option<&mut dyn Any>,
         state: &mut State,
+        ui_camera: &dyn AbstractCamera2d,
+        status_pos: mat3<f32>,
     );
 }
 
@@ -80,12 +91,16 @@ impl<T: Tool> DynTool for T {
         framebuffer: &mut ugli::Framebuffer,
         stroke: Option<&mut dyn Any>,
         state: &mut State,
+        ui_camera: &dyn AbstractCamera2d,
+        status_pos: mat3<f32>,
     ) {
         <T as Tool>::draw(
             self,
             framebuffer,
             stroke.map(|stroke| stroke.downcast_mut().unwrap()),
             state,
+            ui_camera,
+            status_pos,
         );
     }
 }

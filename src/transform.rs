@@ -106,6 +106,8 @@ impl Tool for TransformTool {
         framebuffer: &mut ugli::Framebuffer,
         stroke: Option<&mut Self::Stroke>,
         state: &mut State,
+        ui_camera: &dyn AbstractCamera2d,
+        status_pos: mat3<f32>,
     ) {
         if let Some(idx) = state.selected {
             let plane = &state.planes[idx];
@@ -115,5 +117,14 @@ impl Tool for TransformTool {
                 stroke.map_or(plane.transform, |stroke| stroke.raw_transform),
             );
         }
+
+        state.ctx.geng.default_font().draw(
+            framebuffer,
+            ui_camera,
+            "transform",
+            vec2::splat(geng::TextAlign::CENTER),
+            status_pos,
+            Rgba::WHITE,
+        );
     }
 }

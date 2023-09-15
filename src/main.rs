@@ -120,8 +120,20 @@ impl App {
             );
         }
 
-        self.tool
-            .draw(framebuffer, self.stroke.as_mut(), &mut self.state);
+        let status_pos = self.ui_camera.fov / 2.0 - self.ctx.config.status.width / 2.0;
+        self.tool.draw(
+            framebuffer,
+            self.stroke.as_mut(),
+            &mut self.state,
+            &self.ui_camera,
+            mat3::translate(vec2(
+                0.0,
+                match self.ctx.config.status.pos {
+                    StatusPos::Top => status_pos,
+                    StatusPos::Bottom => -status_pos,
+                },
+            )) * mat3::scale_uniform(self.ctx.config.status.width / 2.0),
+        );
 
         ugli::clear(framebuffer, None, Some(1.0), None);
 

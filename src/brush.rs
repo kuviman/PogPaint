@@ -80,7 +80,19 @@ impl Tool for Brush {
         framebuffer: &mut ugli::Framebuffer,
         stroke: Option<&mut Self::Stroke>,
         state: &mut State,
+        ui_camera: &dyn AbstractCamera2d,
+        status_pos: mat3<f32>,
     ) {
-        // TODO
+        state.ctx.geng.default_font().draw(
+            framebuffer,
+            ui_camera,
+            match self.color {
+                Some(_) => "brush",
+                None => "eraser",
+            },
+            vec2::splat(geng::TextAlign::CENTER),
+            status_pos,
+            Rgba::WHITE,
+        );
     }
 }
