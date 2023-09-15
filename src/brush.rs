@@ -213,6 +213,31 @@ impl Tool for Brush {
             } => {
                 self.size += 1;
             }
+            geng::Event::KeyPress {
+                key: geng::Key::Digit1,
+            } => {
+                self.size = 1;
+            }
+            geng::Event::KeyPress {
+                key: geng::Key::Digit2,
+            } => {
+                self.size = 2;
+            }
+            geng::Event::KeyPress {
+                key: geng::Key::Digit3,
+            } => {
+                self.size = 3;
+            }
+            geng::Event::KeyPress {
+                key: geng::Key::Digit4,
+            } => {
+                self.size = 4;
+            }
+            geng::Event::KeyPress {
+                key: geng::Key::Digit5,
+            } => {
+                self.size = 5;
+            }
             _ => {}
         }
     }
