@@ -104,6 +104,7 @@ impl Tool for TransformTool {
     fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
+        _ray: Option<Ray>,
         stroke: Option<&mut Self::Stroke>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,

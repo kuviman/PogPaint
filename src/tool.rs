@@ -12,6 +12,7 @@ pub trait Tool: 'static {
     fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
+        ray: Option<Ray>,
         stroke: Option<&mut Self::Stroke>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
@@ -47,6 +48,7 @@ impl AnyTool {
     pub fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
+        ray: Option<Ray>,
         stroke: Option<&mut AnyStroke>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
@@ -54,6 +56,7 @@ impl AnyTool {
     ) {
         self.inner.draw(
             framebuffer,
+            ray,
             stroke.map(|stroke| &mut *stroke.inner),
             state,
             ui_camera,
@@ -69,6 +72,7 @@ trait DynTool {
     fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
+        ray: Option<Ray>,
         stroke: Option<&mut dyn Any>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
@@ -89,6 +93,7 @@ impl<T: Tool> DynTool for T {
     fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
+        ray: Option<Ray>,
         stroke: Option<&mut dyn Any>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
@@ -97,6 +102,7 @@ impl<T: Tool> DynTool for T {
         <T as Tool>::draw(
             self,
             framebuffer,
+            ray,
             stroke.map(|stroke| stroke.downcast_mut().unwrap()),
             state,
             ui_camera,

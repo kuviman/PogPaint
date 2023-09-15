@@ -123,6 +123,7 @@ impl App {
         let status_pos = self.ui_camera.fov / 2.0 - self.ctx.config.status.width / 2.0;
         self.tool.draw(
             framebuffer,
+            Some(self.ray(self.ctx.geng.window().cursor_position())),
             self.stroke.as_mut(),
             &mut self.state,
             &self.ui_camera,

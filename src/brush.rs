@@ -78,12 +78,37 @@ impl Tool for Brush {
     fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
+        ray: Option<Ray>,
         _stroke: Option<&mut Self::Stroke>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
         status_pos: mat3<f32>,
     ) {
         let framebuffer_size = framebuffer.size().map(|x| x as f32);
+
+        // Draw preview
+        if let Some(ray) = ray {
+            if let Some(idx) = state.selected {
+                let plane = &state.planes[idx];
+
+                let mut preview_plane = Plane {
+                    texture: Texture::new(&state.ctx),
+                    transform: plane.transform,
+                };
+
+                if let Some(pos) = preview_plane.raycast(ray) {
+                    preview_plane.texture.draw_line(
+                        pos.texture,
+                        pos.texture,
+                        self.size,
+                        self.actual_color(),
+                    );
+
+                    preview_plane.draw(framebuffer, &state.camera);
+                }
+            }
+        }
+
         let text = match self.color {
             Some(_) => "brush",
             None => "eraser",
