@@ -1,5 +1,4 @@
 background_color = "#444"
-fov = 300
 
 default_palette = [
   "white",
@@ -38,6 +37,10 @@ outline = 0.01
 
 [ui]
 fov = 10
+
+[status]
+width = 0.5
+pos = "Top"
 
 [wheel]
 size = 3
