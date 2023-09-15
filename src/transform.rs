@@ -42,8 +42,8 @@ impl Tool for TransformTool {
         let plane = &state.planes[idx];
         match self.origin {
             None => {
-                if let Some(pos) = plane.raycast(ray) {
-                    let pos = self.ctx.round_pos(pos);
+                if let Some(raycast) = plane.raycast(ray) {
+                    let pos = self.ctx.round_pos(raycast.texture_pos);
                     self.origin = Some(pos);
                 }
             }

@@ -146,4 +146,22 @@ impl Texture {
             self.bb = new_bb;
         }
     }
+
+    pub fn color_at(&self, pos: vec2<f32>) -> Rgba<f32> {
+        let Some(texture) = &self.texture else {
+            return Rgba::TRANSPARENT_BLACK;
+        };
+        let pos = pos.map(|x| x.floor() as i32);
+        if self.bb.contains(pos) {
+            let framebuffer = ugli::FramebufferRead::new_color(
+                self.ctx.geng.ugli(),
+                ugli::ColorAttachmentRead::Texture(texture),
+            );
+            let uv = (pos - self.bb.min).map(|x| x as usize);
+            let data = framebuffer.read_color_at(Aabb2::point(uv).extend_positive(vec2::splat(1)));
+            data.get(0, 0).convert()
+        } else {
+            Rgba::TRANSPARENT_BLACK
+        }
+    }
 }

@@ -56,8 +56,8 @@ impl Tool for Brush {
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<BrushStroke> {
         if let Some(idx) = state.selected {
             let plane = &mut state.planes[idx];
-            if let Some(pos) = plane.raycast(ray) {
-                let pos = self.round_pos(pos);
+            if let Some(raycast) = plane.raycast(ray) {
+                let pos = self.round_pos(raycast.texture_pos);
                 plane
                     .texture
                     .draw_line(pos, pos, self.draw_width(), self.actual_color());
@@ -70,8 +70,8 @@ impl Tool for Brush {
     fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {
         if let Some(idx) = state.selected {
             let plane = &mut state.planes[idx];
-            if let Some(pos) = plane.raycast(ray) {
-                let pos = self.round_pos(pos);
+            if let Some(raycast) = plane.raycast(ray) {
+                let pos = self.round_pos(raycast.texture_pos);
                 plane.texture.draw_line(
                     stroke.prev_draw_pos,
                     pos,
@@ -109,8 +109,8 @@ impl Tool for Brush {
                     transform: plane.transform,
                 };
 
-                if let Some(pos) = preview_plane.raycast(ray) {
-                    let pos = self.round_pos(pos);
+                if let Some(raycast) = preview_plane.raycast(ray) {
+                    let pos = self.round_pos(raycast.texture_pos);
                     preview_plane.texture.draw_line(
                         pos,
                         pos,

@@ -5,12 +5,17 @@ pub struct Plane {
     pub transform: mat4<f32>,
 }
 
+pub struct Raycast {
+    pub texture_pos: vec2<f32>,
+    pub t: f32,
+}
+
 impl Plane {
     pub fn draw(&self, framebuffer: &mut ugli::Framebuffer, camera: &impl AbstractCamera3d) {
         self.texture.draw(framebuffer, camera, self.transform);
     }
 
-    pub fn raycast(&self, ray: geng::camera::Ray) -> Option<vec2<f32>> {
+    pub fn raycast(&self, ray: geng::camera::Ray) -> Option<Raycast> {
         let inv_transform = self.transform.inverse();
         let local_ray = geng::camera::Ray {
             from: (inv_transform * ray.from.extend(1.0)).into_3d(),
@@ -23,6 +28,9 @@ impl Plane {
         if t <= 0.0 {
             return None;
         }
-        Some((local_ray.from + local_ray.dir * t).xy())
+        Some(Raycast {
+            texture_pos: (local_ray.from + local_ray.dir * t).xy(),
+            t,
+        })
     }
 }

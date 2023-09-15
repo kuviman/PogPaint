@@ -175,6 +175,26 @@ impl App {
                                 WheelType::Continious(typ) => typ.select(hover, &mut self),
                             }
                         }
+                    } else if self.ctx.geng.window().is_key_pressed(geng::Key::V) {
+                        let ray = self.ray(self.ctx.geng.window().cursor_position());
+                        let mut closest = None;
+                        for (idx, plane) in self.state.planes.iter().enumerate() {
+                            if let Some(raycast) = plane.raycast(ray) {
+                                if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
+                                    continue;
+                                }
+                                let new = (raycast.t, idx);
+                                closest = match closest {
+                                    Some(current) => {
+                                        Some(std::cmp::min_by_key(current, new, |&(t, _idx)| {
+                                            r32(t)
+                                        }))
+                                    }
+                                    None => Some(new),
+                                };
+                            }
+                        }
+                        self.state.selected = closest.map(|(_t, idx)| idx);
                     } else {
                         let ray = self.ray(self.ctx.geng.window().cursor_position());
                         self.stroke = self.tool.start(&mut self.state, ray);
@@ -280,12 +300,12 @@ impl App {
                             let pos = match self.state.selected {
                                 Some(idx) => {
                                     let plane = &self.state.planes[idx];
-                                    let Some(texture_pos) = plane.raycast(
+                                    let Some(raycast) = plane.raycast(
                                         self.ray(self.ctx.geng.window().cursor_position()),
                                     ) else {
                                         continue;
                                     };
-                                    (plane.transform * texture_pos.extend(0.0).extend(1.0))
+                                    (plane.transform * raycast.texture_pos.extend(0.0).extend(1.0))
                                         .into_3d()
                                 }
                                 None => self.state.camera.pos,
