@@ -276,9 +276,26 @@ impl App {
                 geng::Event::KeyPress { key: geng::Key::C } => {
                     self.state.planes.push(Plane {
                         texture: Texture::new(&self.ctx),
-                        transform: self
-                            .ctx
-                            .round_matrix(mat4::translate(self.state.camera.pos)),
+                        transform: self.ctx.round_matrix({
+                            let pos = match self.state.selected {
+                                Some(idx) => {
+                                    let plane = &self.state.planes[idx];
+                                    let Some(texture_pos) = plane.raycast(
+                                        self.ray(self.ctx.geng.window().cursor_position()),
+                                    ) else {
+                                        continue;
+                                    };
+                                    (plane.transform * texture_pos.extend(0.0).extend(1.0))
+                                        .into_3d()
+                                }
+                                None => self.state.camera.pos,
+                            };
+                            let mut m = self.state.camera.view_matrix().inverse();
+                            m[(0, 3)] = pos.x;
+                            m[(1, 3)] = pos.y;
+                            m[(2, 3)] = pos.z;
+                            m
+                        }),
                     });
                     self.state.selected = Some(self.state.planes.len() - 1);
                 }
