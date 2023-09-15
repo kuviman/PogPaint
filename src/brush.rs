@@ -78,19 +78,43 @@ impl Tool for Brush {
     fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
-        stroke: Option<&mut Self::Stroke>,
+        _stroke: Option<&mut Self::Stroke>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
         status_pos: mat3<f32>,
     ) {
-        state.ctx.geng.default_font().draw(
+        let framebuffer_size = framebuffer.size().map(|x| x as f32);
+        let text = match self.color {
+            Some(_) => "brush",
+            None => "eraser",
+        };
+        let text = format!("{text} ({:.1} px)", self.size);
+        let font = state.ctx.geng.default_font();
+        let text_align = vec2::splat(geng::TextAlign::CENTER);
+        let text_measure = font.measure(text.as_str(), text_align).unwrap();
+        if let Some(color) = self.color {
+            let color: Rgba<f32> = color.into();
+            let transform = status_pos * mat3::translate(vec2(text_measure.max.x + 1.5, 0.0));
+            ugli::draw(
+                framebuffer,
+                &state.ctx.shaders.color_2d,
+                ugli::DrawMode::TriangleFan,
+                &*state.ctx.quad,
+                (
+                    ugli::uniforms! {
+                        u_transform: transform,
+                        u_color: color,
+                    },
+                    ui_camera.uniforms(framebuffer_size),
+                ),
+                ugli::DrawParameters { ..default() },
+            );
+        }
+        font.draw(
             framebuffer,
             ui_camera,
-            match self.color {
-                Some(_) => "brush",
-                None => "eraser",
-            },
-            vec2::splat(geng::TextAlign::CENTER),
+            text.as_str(),
+            text_align,
             status_pos,
             Rgba::WHITE,
         );
