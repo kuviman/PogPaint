@@ -141,23 +141,10 @@ impl Tool for Brush {
                                 .draw(framebuffer, &state.camera, transform)
                         }
                         None => {
-                            preview_plane.texture.draw_with(
+                            preview_plane.texture.draw_outline(
                                 framebuffer,
-                                &state.ctx.shaders.outline,
                                 &state.camera,
                                 transform,
-                                Some(ugli::BlendMode {
-                                    rgb: ugli::ChannelBlendMode {
-                                        src_factor: ugli::BlendFactor::OneMinusDstColor,
-                                        dst_factor: ugli::BlendFactor::Zero,
-                                        equation: ugli::BlendEquation::Add,
-                                    },
-                                    alpha: ugli::ChannelBlendMode {
-                                        src_factor: ugli::BlendFactor::One,
-                                        dst_factor: ugli::BlendFactor::Zero,
-                                        equation: ugli::BlendEquation::Add,
-                                    },
-                                }),
                             );
                         }
                     }

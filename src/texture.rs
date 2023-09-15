@@ -30,6 +30,32 @@ impl Texture {
         );
     }
 
+    pub fn draw_outline(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &impl AbstractCamera3d,
+        transform: mat4<f32>,
+    ) {
+        self.draw_with(
+            framebuffer,
+            &self.ctx.shaders.outline,
+            camera,
+            transform,
+            Some(ugli::BlendMode {
+                rgb: ugli::ChannelBlendMode {
+                    src_factor: ugli::BlendFactor::OneMinusDstColor,
+                    dst_factor: ugli::BlendFactor::Zero,
+                    equation: ugli::BlendEquation::Add,
+                },
+                alpha: ugli::ChannelBlendMode {
+                    src_factor: ugli::BlendFactor::One,
+                    dst_factor: ugli::BlendFactor::Zero,
+                    equation: ugli::BlendEquation::Add,
+                },
+            }),
+        );
+    }
+
     pub fn draw_with(
         &self,
         framebuffer: &mut ugli::Framebuffer,

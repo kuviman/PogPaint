@@ -100,6 +100,13 @@ impl App {
             plane.draw(framebuffer, &self.state.camera);
         }
 
+        if let Some(idx) = self.state.selected {
+            let plane = &self.state.planes[idx];
+            plane
+                .texture
+                .draw_outline(framebuffer, &self.state.camera, plane.transform);
+        }
+
         // Grid
         if let Some(idx) = self.state.selected {
             let transform = self.state.planes[idx].transform
@@ -116,7 +123,10 @@ impl App {
                     },
                     self.state.camera.uniforms(self.framebuffer_size),
                 ),
-                ugli::DrawParameters { ..default() },
+                ugli::DrawParameters {
+                    depth_func: Some(ugli::DepthFunc::LessOrEqual),
+                    ..default()
+                },
             );
         }
 
