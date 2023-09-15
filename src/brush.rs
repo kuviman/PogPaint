@@ -115,10 +115,46 @@ impl Tool for Brush {
                         pos,
                         pos,
                         self.draw_width(),
-                        self.actual_color(),
+                        self.color.map_or(Rgba::WHITE, Into::into),
                     );
+                    match self.color {
+                        Some(_) => preview_plane.draw(framebuffer, &state.camera),
+                        None => {
+                            let offset = {
+                                const EPS: f32 = 1e-2;
 
-                    preview_plane.draw(framebuffer, &state.camera);
+                                let forward = (state.camera.view_matrix().inverse()
+                                    * vec4(0.0, 0.0, -1.0, 0.0))
+                                .xyz();
+                                let plane_up = (plane.transform * vec4(0.0, 0.0, 1.0, 0.0)).xyz();
+
+                                if vec3::dot(forward, plane_up) < 0.0 {
+                                    EPS
+                                } else {
+                                    -EPS
+                                }
+                            };
+
+                            preview_plane.texture.draw_with(
+                                framebuffer,
+                                &state.ctx.shaders.outline,
+                                &state.camera,
+                                preview_plane.transform * mat4::translate(vec3(0.0, 0.0, offset)),
+                                Some(ugli::BlendMode {
+                                    rgb: ugli::ChannelBlendMode {
+                                        src_factor: ugli::BlendFactor::OneMinusDstColor,
+                                        dst_factor: ugli::BlendFactor::Zero,
+                                        equation: ugli::BlendEquation::Add,
+                                    },
+                                    alpha: ugli::ChannelBlendMode {
+                                        src_factor: ugli::BlendFactor::One,
+                                        dst_factor: ugli::BlendFactor::Zero,
+                                        equation: ugli::BlendEquation::Add,
+                                    },
+                                }),
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -157,5 +193,21 @@ impl Tool for Brush {
             status_pos,
             Rgba::WHITE,
         );
+    }
+
+    fn handle_event(&mut self, event: geng::Event) {
+        match event {
+            geng::Event::KeyPress {
+                key: geng::Key::Minus,
+            } => {
+                self.size = (self.size - 1).max(1);
+            }
+            geng::Event::KeyPress {
+                key: geng::Key::Equal,
+            } => {
+                self.size += 1;
+            }
+            _ => {}
+        }
     }
 }

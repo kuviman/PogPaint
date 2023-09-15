@@ -14,11 +14,29 @@ impl Texture {
             bb: Aabb2::ZERO, // TODO
         }
     }
+
     pub fn draw(
         &self,
         framebuffer: &mut ugli::Framebuffer,
         camera: &impl AbstractCamera3d,
         transform: mat4<f32>,
+    ) {
+        self.draw_with(
+            framebuffer,
+            &self.ctx.shaders.texture,
+            camera,
+            transform,
+            None,
+        );
+    }
+
+    pub fn draw_with(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        program: &ugli::Program,
+        camera: &impl AbstractCamera3d,
+        transform: mat4<f32>,
+        blend_mode: Option<ugli::BlendMode>,
     ) {
         let Some(texture) = &self.texture else { return };
         let framebuffer_size = framebuffer.size().map(|x| x as f32);
@@ -28,7 +46,7 @@ impl Texture {
             * mat4::scale(bb.size().extend(1.0) / 2.0);
         ugli::draw(
             framebuffer,
-            &self.ctx.shaders.texture,
+            program,
             ugli::DrawMode::TriangleFan,
             &*self.ctx.quad,
             (
@@ -42,6 +60,7 @@ impl Texture {
             ),
             ugli::DrawParameters {
                 depth_func: Some(ugli::DepthFunc::LessOrEqual),
+                blend_mode,
                 ..default()
             },
         );
@@ -103,6 +122,7 @@ impl Texture {
                 self.ctx.geng.ugli(),
                 new_bb.size().map(|x| x as usize),
             );
+            new_texture.set_filter(ugli::Filter::Nearest);
             {
                 let mut framebuffer = ugli::Framebuffer::new_color(
                     self.ctx.geng.ugli(),

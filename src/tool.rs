@@ -18,6 +18,9 @@ pub trait Tool: 'static {
         ui_camera: &dyn AbstractCamera2d,
         status_pos: mat3<f32>,
     );
+    fn handle_event(&mut self, event: geng::Event) {
+        #![allow(unused_variables)]
+    }
 }
 
 pub struct AnyTool {
@@ -63,6 +66,9 @@ impl AnyTool {
             status_pos,
         )
     }
+    pub fn handle_event(&mut self, event: geng::Event) {
+        self.inner.handle_event(event);
+    }
 }
 
 trait DynTool {
@@ -78,6 +84,7 @@ trait DynTool {
         ui_camera: &dyn AbstractCamera2d,
         status_pos: mat3<f32>,
     );
+    fn handle_event(&mut self, event: geng::Event);
 }
 
 impl<T: Tool> DynTool for T {
@@ -108,5 +115,8 @@ impl<T: Tool> DynTool for T {
             ui_camera,
             status_pos,
         );
+    }
+    fn handle_event(&mut self, event: geng::Event) {
+        <T as Tool>::handle_event(self, event);
     }
 }

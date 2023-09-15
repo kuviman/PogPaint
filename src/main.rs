@@ -155,6 +155,7 @@ impl App {
         let mut timer = Timer::new();
         while let Some(event) = events.next().await {
             // TODO color::handle_event(&mut self, &event);
+            self.tool.handle_event(event.clone());
             match event {
                 geng::Event::MousePress {
                     button: geng::MouseButton::Left,

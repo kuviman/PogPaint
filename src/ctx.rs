@@ -77,6 +77,7 @@ pub struct Shaders {
     pub texture: Rc<ugli::Program>,
     pub circle: Rc<ugli::Program>,
     pub ring: Rc<ugli::Program>,
+    pub outline: Rc<ugli::Program>,
 }
 
 impl geng::asset::Load for Shaders {
@@ -132,6 +133,10 @@ impl geng::asset::Load for Shaders {
                 ),
                 ring: Rc::new(
                     shader_lib.compile(&manager.load::<String>(path.join("ring.glsl")).await?)?,
+                ),
+                outline: Rc::new(
+                    shader_lib
+                        .compile(&manager.load::<String>(path.join("outline.glsl")).await?)?,
                 ),
             })
         }
