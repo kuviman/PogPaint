@@ -117,29 +117,35 @@ impl Tool for Brush {
                         self.draw_width(),
                         self.color.map_or(Rgba::WHITE, Into::into),
                     );
+
+                    let offset = {
+                        const EPS: f32 = 1e-2;
+
+                        let forward = (state.camera.view_matrix().inverse()
+                            * vec4(0.0, 0.0, -1.0, 0.0))
+                        .xyz();
+                        let plane_up = (plane.transform * vec4(0.0, 0.0, 1.0, 0.0)).xyz();
+
+                        if vec3::dot(forward, plane_up) < 0.0 {
+                            EPS
+                        } else {
+                            -EPS
+                        }
+                    };
+                    let transform =
+                        preview_plane.transform * mat4::translate(vec3(0.0, 0.0, offset));
                     match self.color {
-                        Some(_) => preview_plane.draw(framebuffer, &state.camera),
+                        Some(_) => {
+                            preview_plane
+                                .texture
+                                .draw(framebuffer, &state.camera, transform)
+                        }
                         None => {
-                            let offset = {
-                                const EPS: f32 = 1e-2;
-
-                                let forward = (state.camera.view_matrix().inverse()
-                                    * vec4(0.0, 0.0, -1.0, 0.0))
-                                .xyz();
-                                let plane_up = (plane.transform * vec4(0.0, 0.0, 1.0, 0.0)).xyz();
-
-                                if vec3::dot(forward, plane_up) < 0.0 {
-                                    EPS
-                                } else {
-                                    -EPS
-                                }
-                            };
-
                             preview_plane.texture.draw_with(
                                 framebuffer,
                                 &state.ctx.shaders.outline,
                                 &state.camera,
-                                preview_plane.transform * mat4::translate(vec3(0.0, 0.0, offset)),
+                                transform,
                                 Some(ugli::BlendMode {
                                     rgb: ugli::ChannelBlendMode {
                                         src_factor: ugli::BlendFactor::OneMinusDstColor,
