@@ -6,11 +6,7 @@ impl Pick {
     pub fn new(ctx: &Ctx) -> Self {
         Self {}
     }
-}
-
-impl Tool for Pick {
-    type Stroke = ();
-    fn start(&mut self, state: &mut State, ray: Ray) -> Option<()> {
+    fn find(&self, state: &State, ray: Ray) -> Option<usize> {
         let mut closest = None;
         for (idx, plane) in state.planes.iter().enumerate() {
             if let Some(raycast) = plane.raycast(ray) {
@@ -24,7 +20,14 @@ impl Tool for Pick {
                 };
             }
         }
-        state.selected = closest.map(|(_t, idx)| idx);
+        closest.map(|(_t, idx)| idx)
+    }
+}
+
+impl Tool for Pick {
+    type Stroke = ();
+    fn start(&mut self, state: &mut State, ray: Ray) -> Option<()> {
+        state.selected = self.find(state, ray);
         None
     }
     fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {}
@@ -39,5 +42,12 @@ impl Tool for Pick {
         ui_camera: &dyn AbstractCamera2d,
         status_pos: mat3<f32>,
     ) {
+        let Some(ray) = ray else { return };
+        if let Some(idx) = self.find(state, ray) {
+            let plane = &state.planes[idx];
+            plane
+                .texture
+                .draw_outline(framebuffer, &state.camera, plane.transform);
+        }
     }
 }
