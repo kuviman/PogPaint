@@ -134,20 +134,14 @@ impl Tool for Brush {
                     };
                     let transform =
                         preview_plane.transform * mat4::translate(vec3(0.0, 0.0, offset));
-                    match self.color {
-                        Some(_) => {
-                            preview_plane
-                                .texture
-                                .draw(framebuffer, &state.camera, transform)
-                        }
-                        None => {
-                            preview_plane.texture.draw_outline(
-                                framebuffer,
-                                &state.camera,
-                                transform,
-                            );
-                        }
+                    if self.color.is_some() {
+                        preview_plane
+                            .texture
+                            .draw(framebuffer, &state.camera, transform)
                     }
+                    preview_plane
+                        .texture
+                        .draw_outline(framebuffer, &state.camera, transform);
                 }
             }
         }
