@@ -88,6 +88,7 @@ pub struct Assets {
 pub struct CtxImpl {
     pub geng: Geng,
     pub config: Rc<Config>,
+    pub keys: Rc<keys::Config>,
     pub shaders: Rc<Shaders>,
     pub quad: Rc<QuadData>,
     pub grid: Rc<QuadData>,
@@ -142,6 +143,11 @@ impl Ctx {
             .load(run_dir().join("config.toml"))
             .await
             .unwrap();
+        let keys: Rc<keys::Config> = Rc::new(
+            file::load_detect(run_dir().join("keys.toml"))
+                .await
+                .unwrap(),
+        );
         let grid = Rc::new(ugli::VertexBuffer::new_static(geng.ugli(), {
             let mut vs = Vec::new();
             for x in -config.grid.line_count..=config.grid.line_count {
@@ -177,6 +183,7 @@ impl Ctx {
         );
         Self {
             inner: Rc::new(CtxImpl {
+                keys,
                 gizmo: gizmo::Renderer::new(geng, &shaders, &quad, &config, &white),
                 config,
                 shaders,
@@ -226,9 +233,13 @@ pub enum Precision {
 
 impl Ctx {
     pub fn precision(&self) -> Precision {
-        if self.geng.window().is_key_pressed(geng::Key::ControlLeft) {
+        if self.geng.window().is_key_pressed(self.keys.precision.pixel) {
             Precision::Pixel
-        } else if self.geng.window().is_key_pressed(geng::Key::AltLeft) {
+        } else if self
+            .geng
+            .window()
+            .is_key_pressed(self.keys.precision.unbounded)
+        {
             Precision::Unbounded
         } else {
             Precision::Grid

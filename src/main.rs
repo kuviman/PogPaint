@@ -5,6 +5,7 @@ mod color;
 mod config;
 mod ctx;
 mod gizmo;
+mod keys;
 mod palette;
 mod plane;
 mod texture;
@@ -241,22 +242,52 @@ impl App {
                 geng::Event::Draw => {
                     let delta_time = timer.tick();
                     let mut mov = vec3::<i32>::ZERO;
-                    if self.ctx.geng.window().is_key_pressed(geng::Key::W) {
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(self.ctx.keys.camera.forward)
+                    {
                         mov.y += 1;
                     }
-                    if self.ctx.geng.window().is_key_pressed(geng::Key::A) {
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(self.ctx.keys.camera.left)
+                    {
                         mov.x -= 1;
                     }
-                    if self.ctx.geng.window().is_key_pressed(geng::Key::S) {
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(self.ctx.keys.camera.back)
+                    {
                         mov.y -= 1;
                     }
-                    if self.ctx.geng.window().is_key_pressed(geng::Key::D) {
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(self.ctx.keys.camera.right)
+                    {
                         mov.x += 1;
                     }
-                    if self.ctx.geng.window().is_key_pressed(geng::Key::Space) {
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(self.ctx.keys.camera.up)
+                    {
                         mov.z += 1;
                     }
-                    if self.ctx.geng.window().is_key_pressed(geng::Key::C) {
+                    if self
+                        .ctx
+                        .geng
+                        .window()
+                        .is_key_pressed(self.ctx.keys.camera.down)
+                    {
                         mov.z -= 1;
                     }
                     let mov = mov
@@ -273,60 +304,71 @@ impl App {
                         .window()
                         .with_framebuffer(|framebuffer| self.draw(framebuffer));
                 }
-                geng::Event::KeyPress {
-                    key: geng::Key::Tab,
-                } => {
-                    if self.state.planes.is_empty() {
-                        self.state.selected = None;
-                    } else {
-                        self.state.selected = Some(
-                            self.state
-                                .selected
-                                .map_or(0, |idx| (idx + 1) % self.state.planes.len()),
-                        );
+                geng::Event::KeyPress { key } => {
+                    let keys = self.ctx.keys.clone();
+
+                    if key == keys.switch_plane {
+                        if self.state.planes.is_empty() {
+                            self.state.selected = None;
+                        } else {
+                            self.state.selected = Some(
+                                self.state
+                                    .selected
+                                    .map_or(0, |idx| (idx + 1) % self.state.planes.len()),
+                            );
+                        }
+                    }
+
+                    if key == keys.first_person {
+                        self.toggle_first_person();
+                    }
+
+                    if key == keys.palette {
+                        Palette::start(&mut self);
+                    }
+
+                    let tool = |keys: &keys::ToolKeys| -> Option<AnyTool> {
+                        if Some(key) == keys.brush {
+                            return Some(AnyTool::new(tools::Brush::default(&self.ctx)));
+                        }
+                        if Some(key) == keys.eraser {
+                            return Some(AnyTool::new(tools::Brush::eraser(&self.ctx)));
+                        }
+                        if Some(key) == keys.transform {
+                            return Some(AnyTool::new(tools::Transform::new(&self.ctx)));
+                        }
+                        if Some(key) == keys.pick {
+                            return Some(AnyTool::new(tools::Pick::new(&self.ctx)));
+                        }
+                        if Some(key) == keys.create {
+                            return Some(AnyTool::new(tools::Create::new(&self.ctx)));
+                        }
+                        None
+                    };
+
+                    if let Some(tool) = tool(&keys.tools.temp) {
+                        self.start_temp_tool(tool, Some(geng::Event::KeyRelease { key }));
+                    } else if let Some(tool) = tool(&keys.tools.switch) {
+                        self.switch_primary_tool(tool);
                     }
                 }
-                geng::Event::KeyPress { key: geng::Key::B } => {
-                    self.switch_primary_tool(tools::Brush::default(&self.ctx));
-                }
-                geng::Event::KeyPress { key: geng::Key::E } => {
-                    self.switch_primary_tool(tools::Brush::eraser(&self.ctx));
-                }
-                geng::Event::KeyPress { key: geng::Key::T } => {
-                    self.switch_primary_tool(tools::Transform::new(&self.ctx));
-                }
-                geng::Event::KeyPress { key: geng::Key::F } => {
-                    self.toggle_first_person();
-                }
-                geng::Event::KeyPress { key: geng::Key::V } => self.start_temp_tool(
-                    tools::Pick::new(&self.ctx),
-                    Some(geng::Event::KeyRelease { key: geng::Key::V }),
-                ),
-                geng::Event::KeyPress { key: geng::Key::N } => self.start_temp_tool(
-                    tools::Create::new(&self.ctx),
-                    Some(geng::Event::KeyRelease { key: geng::Key::N }),
-                ),
-                geng::Event::KeyPress { key: geng::Key::Q } => Palette::start(&mut self),
                 _ => {}
             }
         }
     }
 
-    fn switch_primary_tool(&mut self, tool: impl Tool) {
+    fn switch_primary_tool(&mut self, tool: AnyTool) {
         if self.toolbelt.current().is_stroking() {
             return;
         }
-        self.toolbelt.primary = AnyTool::new(tool);
+        self.toolbelt.primary = tool;
     }
 
-    fn start_temp_tool(&mut self, tool: impl Tool, cancel_on: Option<geng::Event>) {
+    fn start_temp_tool(&mut self, tool: AnyTool, cancel_on: Option<geng::Event>) {
         if self.toolbelt.current().is_stroking() {
             return;
         }
-        self.toolbelt.temp = Some(TempTool {
-            tool: AnyTool::new(tool),
-            cancel_on,
-        });
+        self.toolbelt.temp = Some(TempTool { tool, cancel_on });
     }
 
     fn toggle_first_person(&mut self) {

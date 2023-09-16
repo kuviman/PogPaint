@@ -1,6 +1,7 @@
 use super::*;
 
 pub struct Brush {
+    ctx: Ctx,
     size: usize,
     /// None means eraser
     color: Option<Hsla<f32>>,
@@ -21,6 +22,7 @@ impl Brush {
 
     fn new_impl(ctx: &Ctx, color: Option<Rgba<f32>>) -> Self {
         Self {
+            ctx: ctx.clone(),
             size: ctx.config.default_brush.size,
             color: color.map(Into::into),
         }
@@ -183,43 +185,19 @@ impl Tool for Brush {
     }
 
     fn handle_event(&mut self, event: geng::Event) {
-        match event {
-            geng::Event::KeyPress {
-                key: geng::Key::Minus,
-            } => {
+        if let geng::Event::KeyPress { key } = event {
+            let keys = &self.ctx.keys.brush;
+            if key == keys.decrease_size {
                 self.size = (self.size - 1).max(1);
             }
-            geng::Event::KeyPress {
-                key: geng::Key::Equal,
-            } => {
+            if key == keys.increase_size {
                 self.size += 1;
             }
-            geng::Event::KeyPress {
-                key: geng::Key::Digit1,
-            } => {
-                self.size = 1;
+            for (size, size_key) in (1..).zip(&keys.sizes) {
+                if key == *size_key {
+                    self.size = size;
+                }
             }
-            geng::Event::KeyPress {
-                key: geng::Key::Digit2,
-            } => {
-                self.size = 2;
-            }
-            geng::Event::KeyPress {
-                key: geng::Key::Digit3,
-            } => {
-                self.size = 3;
-            }
-            geng::Event::KeyPress {
-                key: geng::Key::Digit4,
-            } => {
-                self.size = 4;
-            }
-            geng::Event::KeyPress {
-                key: geng::Key::Digit5,
-            } => {
-                self.size = 5;
-            }
-            _ => {}
         }
     }
 }
