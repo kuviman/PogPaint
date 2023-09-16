@@ -256,12 +256,7 @@ impl App {
                     if self.ctx.geng.window().is_key_pressed(geng::Key::Space) {
                         mov.z += 1;
                     }
-                    if self
-                        .ctx
-                        .geng
-                        .window()
-                        .is_key_pressed(geng::Key::ControlLeft)
-                    {
+                    if self.ctx.geng.window().is_key_pressed(geng::Key::C) {
                         mov.z -= 1;
                     }
                     let mov = mov
@@ -307,9 +302,9 @@ impl App {
                     tools::Pick::new(&self.ctx),
                     Some(geng::Event::KeyRelease { key: geng::Key::V }),
                 ),
-                geng::Event::KeyPress { key: geng::Key::C } => self.start_temp_tool(
+                geng::Event::KeyPress { key: geng::Key::N } => self.start_temp_tool(
                     tools::Create::new(&self.ctx),
-                    Some(geng::Event::KeyRelease { key: geng::Key::C }),
+                    Some(geng::Event::KeyRelease { key: geng::Key::N }),
                 ),
                 geng::Event::KeyPress { key: geng::Key::Q } => Palette::start(&mut self),
                 _ => {}
