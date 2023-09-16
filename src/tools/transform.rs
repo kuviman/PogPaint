@@ -1,11 +1,11 @@
 use super::*;
 
-pub struct TransformTool {
+pub struct Transform {
     ctx: Ctx,
     origin: Option<vec2<f32>>,
 }
 
-impl TransformTool {
+impl Transform {
     pub fn new(ctx: &Ctx) -> Self {
         Self {
             ctx: ctx.clone(),
@@ -32,7 +32,7 @@ fn closest_point_on_line(ray: Ray, line: Ray) -> vec3<f32> {
     closest_point_to_line(line, ray)
 }
 
-impl Tool for TransformTool {
+impl Tool for Transform {
     type Stroke = TransformStroke;
 
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<Self::Stroke> {

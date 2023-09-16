@@ -1,6 +1,5 @@
 use geng::prelude::*;
 
-mod brush;
 mod camera;
 mod color;
 mod ctx;
@@ -9,17 +8,15 @@ mod palette;
 mod plane;
 mod texture;
 mod tool;
-mod transform;
+mod tools;
 mod wheel;
 
-use brush::Brush;
 use camera::Camera;
 use ctx::*;
 use palette::Palette;
 use plane::Plane;
 use texture::Texture;
 use tool::*;
-use transform::TransformTool;
 use wheel::*;
 
 #[derive(clap::Parser)]
@@ -60,12 +57,31 @@ impl State {
     }
 }
 
+struct TempTool {
+    tool: AnyTool,
+    cancel_on: Option<geng::Event>,
+}
+
+struct Toolbelt {
+    primary: AnyTool,
+    temp: Option<TempTool>,
+}
+
+impl Toolbelt {
+    fn current(&mut self) -> &mut AnyTool {
+        if let Some(temp) = &mut self.temp {
+            return &mut temp.tool;
+        }
+        &mut self.primary
+    }
+}
+
 pub struct App {
     ctx: Ctx,
     wheel: Option<Wheel>,
     ui_camera: Camera2d,
     framebuffer_size: vec2<f32>,
-    tool: AnyTool,
+    toolbelt: Toolbelt,
     state: State,
 }
 
@@ -79,7 +95,10 @@ impl App {
                 rotation: Angle::ZERO,
                 fov: ctx.config.ui.fov,
             },
-            tool: AnyTool::new(Brush::default(ctx)),
+            toolbelt: Toolbelt {
+                primary: AnyTool::new(tools::Brush::default(ctx)),
+                temp: None,
+            },
             wheel: None,
             state: State::new(ctx),
         }
@@ -129,9 +148,10 @@ impl App {
         }
 
         let status_pos = self.ui_camera.fov / 2.0 - self.ctx.config.status.width / 2.0;
-        self.tool.draw(
+        let ray = self.ray(self.ctx.geng.window().cursor_position());
+        self.toolbelt.current().draw(
             framebuffer,
-            Some(self.ray(self.ctx.geng.window().cursor_position())),
+            Some(ray),
             &mut self.state,
             &self.ui_camera,
             mat3::translate(vec2(
@@ -162,7 +182,13 @@ impl App {
         let mut timer = Timer::new();
         while let Some(event) = events.next().await {
             // TODO color::handle_event(&mut self, &event);
-            self.tool.handle_event(event.clone());
+            if let Some(temp) = &mut self.toolbelt.temp {
+                if temp.cancel_on == Some(event.clone()) {
+                    self.toolbelt.temp = None;
+                    continue;
+                }
+            }
+            self.toolbelt.current().handle_event(event.clone());
             match event {
                 geng::Event::MousePress {
                     button: geng::MouseButton::Left,
@@ -182,36 +208,16 @@ impl App {
                                 WheelType::Continious(typ) => typ.select(hover, &mut self),
                             }
                         }
-                    } else if self.ctx.geng.window().is_key_pressed(geng::Key::V) {
-                        let ray = self.ray(self.ctx.geng.window().cursor_position());
-                        let mut closest = None;
-                        for (idx, plane) in self.state.planes.iter().enumerate() {
-                            if let Some(raycast) = plane.raycast(ray) {
-                                if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
-                                    continue;
-                                }
-                                let new = (raycast.t, idx);
-                                closest = match closest {
-                                    Some(current) => {
-                                        Some(std::cmp::min_by_key(current, new, |&(t, _idx)| {
-                                            r32(t)
-                                        }))
-                                    }
-                                    None => Some(new),
-                                };
-                            }
-                        }
-                        self.state.selected = closest.map(|(_t, idx)| idx);
                     } else {
                         let ray = self.ray(self.ctx.geng.window().cursor_position());
-                        self.tool.start(&mut self.state, ray);
+                        self.toolbelt.current().start(&mut self.state, ray);
                     }
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Left,
                 } => {
                     let ray = self.ray(self.ctx.geng.window().cursor_position());
-                    self.tool.end(&mut self.state, ray);
+                    self.toolbelt.current().end(&mut self.state, ray);
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
@@ -298,55 +304,47 @@ impl App {
                         );
                     }
                 }
-                geng::Event::KeyPress { key: geng::Key::C } => {
-                    self.state.planes.push(Plane {
-                        texture: Texture::new(&self.ctx),
-                        transform: self.ctx.round_matrix({
-                            let pos = match self.state.selected {
-                                Some(idx) => {
-                                    let plane = &self.state.planes[idx];
-                                    let Some(raycast) = plane.raycast(
-                                        self.ray(self.ctx.geng.window().cursor_position()),
-                                    ) else {
-                                        continue;
-                                    };
-                                    (plane.transform * raycast.texture_pos.extend(0.0).extend(1.0))
-                                        .into_3d()
-                                }
-                                None => self.state.camera.pos,
-                            };
-                            let mut m = self.state.camera.view_matrix().inverse();
-                            m[(0, 3)] = pos.x;
-                            m[(1, 3)] = pos.y;
-                            m[(2, 3)] = pos.z;
-                            m
-                        }),
-                    });
-                    self.state.selected = Some(self.state.planes.len() - 1);
-                }
                 geng::Event::KeyPress { key: geng::Key::B } => {
-                    self.switch_tool(Brush::default(&self.ctx));
+                    self.switch_primary_tool(tools::Brush::default(&self.ctx));
                 }
                 geng::Event::KeyPress { key: geng::Key::E } => {
-                    self.switch_tool(Brush::eraser(&self.ctx));
+                    self.switch_primary_tool(tools::Brush::eraser(&self.ctx));
                 }
                 geng::Event::KeyPress { key: geng::Key::T } => {
-                    self.switch_tool(TransformTool::new(&self.ctx));
+                    self.switch_primary_tool(tools::Transform::new(&self.ctx));
                 }
                 geng::Event::KeyPress { key: geng::Key::F } => {
                     self.toggle_first_person();
                 }
+                geng::Event::KeyPress { key: geng::Key::V } => self.start_temp_tool(
+                    tools::Pick::new(&self.ctx),
+                    Some(geng::Event::KeyRelease { key: geng::Key::V }),
+                ),
+                geng::Event::KeyPress { key: geng::Key::C } => self.start_temp_tool(
+                    tools::Create::new(&self.ctx),
+                    Some(geng::Event::KeyRelease { key: geng::Key::C }),
+                ),
                 geng::Event::KeyPress { key: geng::Key::Q } => Palette::start(&mut self),
                 _ => {}
             }
         }
     }
 
-    fn switch_tool(&mut self, tool: impl Tool) {
-        if self.tool.is_stroking() {
+    fn switch_primary_tool(&mut self, tool: impl Tool) {
+        if self.toolbelt.current().is_stroking() {
             return;
         }
-        self.tool = AnyTool::new(tool);
+        self.toolbelt.primary = AnyTool::new(tool);
+    }
+
+    fn start_temp_tool(&mut self, tool: impl Tool, cancel_on: Option<geng::Event>) {
+        if self.toolbelt.current().is_stroking() {
+            return;
+        }
+        self.toolbelt.temp = Some(TempTool {
+            tool: AnyTool::new(tool),
+            cancel_on,
+        });
     }
 
     fn toggle_first_person(&mut self) {
@@ -364,7 +362,7 @@ impl App {
 
     fn handle_move(&mut self, cursor_position: Option<vec2<f64>>) {
         let ray = self.ray(cursor_position);
-        self.tool.resume(&mut self.state, ray);
+        self.toolbelt.current().resume(&mut self.state, ray);
     }
 
     fn ray(&self, cursor_position: Option<vec2<f64>>) -> Ray {
