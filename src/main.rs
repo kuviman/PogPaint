@@ -2,6 +2,7 @@ use geng::prelude::*;
 
 mod camera;
 mod color;
+mod config;
 mod ctx;
 mod gizmo;
 mod palette;
@@ -12,6 +13,7 @@ mod tools;
 mod wheel;
 
 use camera::Camera;
+use config::Config;
 use ctx::*;
 use palette::Palette;
 use plane::Plane;
@@ -142,8 +144,8 @@ impl App {
             mat3::translate(vec2(
                 0.0,
                 match self.ctx.config.status.pos {
-                    StatusPos::Top => status_pos,
-                    StatusPos::Bottom => -status_pos,
+                    config::StatusPos::Top => status_pos,
+                    config::StatusPos::Bottom => -status_pos,
                 },
             )) * mat3::scale_uniform(self.ctx.config.status.width / 2.0),
         );
