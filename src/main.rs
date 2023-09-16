@@ -86,6 +86,7 @@ pub struct App {
     framebuffer_size: vec2<f32>,
     toolbelt: Toolbelt,
     state: State,
+    drag_start: Option<vec3<f32>>,
 }
 
 impl App {
@@ -104,6 +105,7 @@ impl App {
             },
             wheel: None,
             state: State::new(ctx),
+            drag_start: None,
         }
     }
 
@@ -209,15 +211,42 @@ impl App {
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
-                } if self.state.camera.distance != 0.0 => {
-                    self.ctx.geng.window().lock_cursor();
+                } => {
+                    let ray = self.ray(self.ctx.geng.window().cursor_position());
+
+                    let mut closest = None::<f32>;
+                    for plane in &self.state.planes {
+                        if let Some(raycast) = plane.raycast(ray) {
+                            if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
+                                continue;
+                            }
+                            closest = match closest {
+                                Some(current) => Some(current.min(raycast.t)),
+                                None => Some(raycast.t),
+                            };
+                        }
+                    }
+                    if let Some(t) = closest {
+                        self.drag_start = Some(ray.from + ray.dir * t);
+                    }
+
+                    if self.state.camera.distance != 0.0 {
+                        self.ctx.geng.window().lock_cursor();
+                    }
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Middle,
-                } if self.state.camera.distance != 0.0 => {
-                    self.ctx.geng.window().unlock_cursor();
+                } => {
+                    if self.state.camera.distance != 0.0 {
+                        self.ctx.geng.window().unlock_cursor();
+                    }
+                    self.drag_start = None;
                 }
                 geng::Event::RawMouseMove { delta } => {
+                    let old_drag_camera = self
+                        .drag_start
+                        .map(|p| self.state.camera.view_matrix() * p.extend(1.0));
+
                     self.state.camera.rot +=
                         Angle::from_degrees(-delta.x as f32 * self.ctx.config.camera.sensitivity);
                     self.state.camera.attack = (self.state.camera.attack
@@ -225,6 +254,14 @@ impl App {
                             -delta.y as f32 * self.ctx.config.camera.sensitivity,
                         ))
                     .clamp_abs(Angle::from_degrees(90.0));
+
+                    if let Some(old_camera) = old_drag_camera {
+                        let drag = self.drag_start.unwrap();
+                        let view_matrix = self.state.camera.view_matrix();
+                        let p = view_matrix.inverse() * old_camera;
+                        self.state.camera.pos -= p.into_3d() - drag;
+                    }
+
                     self.handle_move(None);
                 }
                 geng::Event::CursorMove { position } => {
