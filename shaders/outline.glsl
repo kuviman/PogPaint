@@ -17,14 +17,18 @@ uniform ivec2 u_texture_size;
 uniform vec4 u_color;
 void main() {
   vec4 color = texture2D(u_texture, v_uv);
-  for (int dx = -1; dx <= 1; dx++) {
-    for (int dy = -1; dy <= 1; dy++) {
+  int diff = 0;
+  for (int dx = -2; dx <= 2; dx++) {
+    for (int dy = -2; dy <= 2; dy++) {
       if (color != texture2D(u_texture, v_uv + dFdx(v_uv) * float(dx) + dFdy(v_uv) * float(dy))) {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-        return;
+        diff++;
       }
     }
   }
-  discard;
+  if (diff >= 3) {
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+  } else {
+    discard;
+  }
 }
 #endif
