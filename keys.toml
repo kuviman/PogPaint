@@ -1,0 +1,39 @@
+palette = "Q"
+first_person = "F"
+switch_plane = "Tab"
+
+[camera]
+forward = "W"
+left = "A"
+right = "D"
+back = "S"
+up = "Space"
+down = "C"
+
+[tools]
+brush = "B"
+eraser = "E"
+transform = "T"
+
+[tools.temp]
+pick = "V"
+create = "N"
+
+[precision]
+pixel = "ControlLeft"
+unbounded = "AltLeft"
+
+[brush]
+increase_size = "Equal"
+decrease_size = "Minus"
+sizes = [
+    "Digit1",
+    "Digit2",
+    "Digit3",
+    "Digit4",
+    "Digit5",
+    "Digit6",
+    "Digit7",
+    "Digit8",
+    "Digit9",
+]
