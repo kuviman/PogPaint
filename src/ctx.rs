@@ -257,6 +257,33 @@ impl Ctx {
             }),
         }
     }
+
+    pub fn draw_grid(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &impl AbstractCamera3d,
+        transform: mat4<f32>,
+    ) {
+        let framebuffer_size = framebuffer.size().map(|x| x as f32);
+        let transform = transform * mat4::scale_uniform(self.config.grid.cell_size);
+        ugli::draw(
+            framebuffer,
+            &self.shaders.color_3d,
+            ugli::DrawMode::Lines { line_width: 1.0 },
+            &*self.grid,
+            (
+                ugli::uniforms! {
+                    u_transform: transform,
+                    u_color: self.config.grid.color,
+                },
+                camera.uniforms(framebuffer_size),
+            ),
+            ugli::DrawParameters {
+                depth_func: Some(ugli::DepthFunc::LessOrEqual),
+                ..default()
+            },
+        );
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Eq)]

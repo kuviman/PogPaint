@@ -124,26 +124,11 @@ impl App {
                 .draw_outline(framebuffer, &self.state.camera, plane.transform);
         }
 
-        // Grid
         if let Some(idx) = self.state.selected {
-            let transform = self.state.planes[idx].transform
-                * mat4::scale_uniform(self.ctx.config.grid.cell_size);
-            ugli::draw(
+            self.ctx.draw_grid(
                 framebuffer,
-                &self.ctx.shaders.color_3d,
-                ugli::DrawMode::Lines { line_width: 1.0 },
-                &*self.ctx.grid,
-                (
-                    ugli::uniforms! {
-                        u_transform: transform,
-                        u_color: self.ctx.config.grid.color,
-                    },
-                    self.state.camera.uniforms(self.framebuffer_size),
-                ),
-                ugli::DrawParameters {
-                    depth_func: Some(ugli::DepthFunc::LessOrEqual),
-                    ..default()
-                },
+                &self.state.camera,
+                self.state.planes[idx].transform,
             );
         }
 
