@@ -66,7 +66,6 @@ pub struct App {
     ui_camera: Camera2d,
     framebuffer_size: vec2<f32>,
     tool: AnyTool,
-    stroke: Option<AnyStroke>,
     state: State,
 }
 
@@ -81,7 +80,6 @@ impl App {
                 fov: ctx.config.ui.fov,
             },
             tool: AnyTool::new(Brush::default(ctx)),
-            stroke: None,
             wheel: None,
             state: State::new(ctx),
         }
@@ -134,7 +132,6 @@ impl App {
         self.tool.draw(
             framebuffer,
             Some(self.ray(self.ctx.geng.window().cursor_position())),
-            self.stroke.as_mut(),
             &mut self.state,
             &self.ui_camera,
             mat3::translate(vec2(
@@ -207,16 +204,14 @@ impl App {
                         self.state.selected = closest.map(|(_t, idx)| idx);
                     } else {
                         let ray = self.ray(self.ctx.geng.window().cursor_position());
-                        self.stroke = self.tool.start(&mut self.state, ray);
+                        self.tool.start(&mut self.state, ray);
                     }
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Left,
                 } => {
-                    if let Some(stroke) = self.stroke.take() {
-                        let ray = self.ray(self.ctx.geng.window().cursor_position());
-                        self.tool.end(stroke, &mut self.state, ray);
-                    }
+                    let ray = self.ray(self.ctx.geng.window().cursor_position());
+                    self.tool.end(&mut self.state, ray);
                 }
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
@@ -348,7 +343,7 @@ impl App {
     }
 
     fn switch_tool(&mut self, tool: impl Tool) {
-        if self.stroke.is_some() {
+        if self.tool.is_stroking() {
             return;
         }
         self.tool = AnyTool::new(tool);
@@ -369,9 +364,7 @@ impl App {
 
     fn handle_move(&mut self, cursor_position: Option<vec2<f64>>) {
         let ray = self.ray(cursor_position);
-        if let Some(stroke) = &mut self.stroke {
-            self.tool.resume(stroke, &mut self.state, ray);
-        }
+        self.tool.resume(&mut self.state, ray);
     }
 
     fn ray(&self, cursor_position: Option<vec2<f64>>) -> Ray {

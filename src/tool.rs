@@ -25,34 +25,40 @@ pub trait Tool: 'static {
 
 pub struct AnyTool {
     inner: Box<dyn DynTool>,
-}
-
-pub struct AnyStroke {
-    inner: Box<dyn Any>,
+    stroke: Option<Box<dyn Any>>,
 }
 
 impl AnyTool {
     pub fn new(tool: impl Tool) -> Self {
         Self {
             inner: Box::new(tool),
+            stroke: None,
         }
     }
-    pub fn start(&mut self, state: &mut State, ray: Ray) -> Option<AnyStroke> {
-        self.inner
-            .start(state, ray)
-            .map(|any| AnyStroke { inner: any })
+    pub fn is_stroking(&self) -> bool {
+        self.stroke.is_some()
     }
-    pub fn resume(&mut self, stroke: &mut AnyStroke, state: &mut State, ray: Ray) {
-        self.inner.resume(&mut *stroke.inner, state, ray)
+    pub fn start(&mut self, state: &mut State, ray: Ray) {
+        if self.stroke.is_some() {
+            self.end(state, ray);
+        }
+        assert!(self.stroke.is_none());
+        self.stroke = self.inner.start(state, ray);
     }
-    pub fn end(&mut self, stroke: AnyStroke, state: &mut State, ray: Ray) {
-        self.inner.end(stroke.inner, state, ray)
+    pub fn resume(&mut self, state: &mut State, ray: Ray) {
+        if let Some(stroke) = &mut self.stroke {
+            self.inner.resume(&mut **stroke, state, ray)
+        }
+    }
+    pub fn end(&mut self, state: &mut State, ray: Ray) {
+        if let Some(stroke) = self.stroke.take() {
+            self.inner.end(stroke, state, ray);
+        }
     }
     pub fn draw(
         &mut self,
         framebuffer: &mut ugli::Framebuffer,
         ray: Option<Ray>,
-        stroke: Option<&mut AnyStroke>,
         state: &mut State,
         ui_camera: &dyn AbstractCamera2d,
         status_pos: mat3<f32>,
@@ -60,7 +66,7 @@ impl AnyTool {
         self.inner.draw(
             framebuffer,
             ray,
-            stroke.map(|stroke| &mut *stroke.inner),
+            self.stroke.as_mut().map(|stroke| &mut **stroke),
             state,
             ui_camera,
             status_pos,
