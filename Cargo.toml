@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [package.metadata.geng]
-assets = ["assets", "shaders", "config.toml"]
+assets = ["assets", "shaders", "config.toml", "keys.toml"]
 
 [dependencies]
 geng.git = "https://github.com/geng-engine/geng"
