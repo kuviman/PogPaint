@@ -187,14 +187,14 @@ impl Tool for Brush {
     fn handle_event(&mut self, event: geng::Event) {
         if let geng::Event::KeyPress { key } = event {
             let keys = &self.ctx.keys.brush;
-            if key == keys.decrease_size {
+            if keys.decrease_size.matches(&event, &self.ctx) {
                 self.size = (self.size - 1).max(1);
             }
-            if key == keys.increase_size {
+            if keys.increase_size.matches(&event, &self.ctx) {
                 self.size += 1;
             }
             for (size, size_key) in (1..).zip(&keys.sizes) {
-                if key == *size_key {
+                if size_key.matches(&event, &self.ctx) {
                     self.size = size;
                 }
             }

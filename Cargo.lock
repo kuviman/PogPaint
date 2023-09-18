@@ -354,7 +354,6 @@ checksum = "9ba43ea6f343b788c8764558649e08df62f86c6ef251fdaeb1ffd010a9ae50a2"
 [[package]]
 name = "batbox"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "async-compat",
@@ -416,7 +415,6 @@ dependencies = [
 [[package]]
 name = "batbox-android"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "android-activity",
  "jni 0.21.1",
@@ -428,7 +426,6 @@ dependencies = [
 [[package]]
 name = "batbox-approx"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-num",
 ]
@@ -436,7 +433,6 @@ dependencies = [
 [[package]]
 name = "batbox-cli"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "clap",
  "log",
@@ -447,7 +443,6 @@ dependencies = [
 [[package]]
 name = "batbox-cmp"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-range",
 ]
@@ -455,7 +450,6 @@ dependencies = [
 [[package]]
 name = "batbox-collection"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-collection-derive",
  "batbox-diff",
@@ -465,7 +459,6 @@ dependencies = [
 [[package]]
 name = "batbox-collection-derive"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -477,7 +470,6 @@ dependencies = [
 [[package]]
 name = "batbox-color"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "batbox-approx",
@@ -488,7 +480,6 @@ dependencies = [
 [[package]]
 name = "batbox-diff"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-diff-derive",
  "serde",
@@ -497,7 +488,6 @@ dependencies = [
 [[package]]
 name = "batbox-diff-derive"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -508,7 +498,6 @@ dependencies = [
 [[package]]
 name = "batbox-file"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "async-compat",
@@ -533,7 +522,6 @@ dependencies = [
 [[package]]
 name = "batbox-file-dialog"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "batbox-file",
@@ -547,7 +535,6 @@ dependencies = [
 [[package]]
 name = "batbox-i18n"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-i18n-macro",
  "libc",
@@ -559,7 +546,6 @@ dependencies = [
 [[package]]
 name = "batbox-i18n-macro"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -570,7 +556,6 @@ dependencies = [
 [[package]]
 name = "batbox-la"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-approx",
  "batbox-cmp",
@@ -583,7 +568,6 @@ dependencies = [
 [[package]]
 name = "batbox-lapp"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-approx",
  "batbox-cmp",
@@ -595,7 +579,6 @@ dependencies = [
 [[package]]
 name = "batbox-logger"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "backtrace",
  "env_logger",
@@ -607,7 +590,6 @@ dependencies = [
 [[package]]
 name = "batbox-num"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "getrandom 0.2.10",
  "rand 0.8.5",
@@ -617,7 +599,6 @@ dependencies = [
 [[package]]
 name = "batbox-preferences"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "directories",
  "log",
@@ -629,12 +610,10 @@ dependencies = [
 [[package]]
 name = "batbox-range"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 
 [[package]]
 name = "batbox-time"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "async-std",
  "js-sys",
@@ -645,7 +624,6 @@ dependencies = [
 [[package]]
 name = "batbox-tuple-macros"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 
 [[package]]
 name = "bincode"
@@ -1564,7 +1542,6 @@ dependencies = [
 [[package]]
 name = "geng"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox",
  "console_error_panic_hook",
@@ -1591,7 +1568,6 @@ dependencies = [
 [[package]]
 name = "geng-asset"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "batbox-file",
@@ -1613,7 +1589,6 @@ dependencies = [
 [[package]]
 name = "geng-asset-derive"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -1624,7 +1599,6 @@ dependencies = [
 [[package]]
 name = "geng-async-state"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "async-trait",
  "batbox-la",
@@ -1640,7 +1614,6 @@ dependencies = [
 [[package]]
 name = "geng-audio"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "atomic_float",
@@ -1659,7 +1632,6 @@ dependencies = [
 [[package]]
 name = "geng-camera"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-la",
  "batbox-lapp",
@@ -1670,7 +1642,6 @@ dependencies = [
 [[package]]
 name = "geng-debug_overlay"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-color",
  "batbox-la",
@@ -1688,7 +1659,6 @@ dependencies = [
 [[package]]
 name = "geng-draw2d"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-approx",
  "batbox-color",
@@ -1703,7 +1673,6 @@ dependencies = [
 [[package]]
 name = "geng-font"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "batbox-color",
@@ -1720,7 +1689,6 @@ dependencies = [
 [[package]]
 name = "geng-net"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "batbox-time",
@@ -1738,7 +1706,6 @@ dependencies = [
 [[package]]
 name = "geng-obj"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-la",
  "ugli",
@@ -1760,7 +1727,6 @@ dependencies = [
 [[package]]
 name = "geng-shader"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "ugli",
@@ -1769,7 +1735,6 @@ dependencies = [
 [[package]]
 name = "geng-state"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "geng-ui",
  "geng-window",
@@ -1779,7 +1744,6 @@ dependencies = [
 [[package]]
 name = "geng-texture-atlas"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-la",
  "ugli",
@@ -1788,7 +1752,6 @@ dependencies = [
 [[package]]
 name = "geng-ui"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-cmp",
  "batbox-color",
@@ -1805,7 +1768,6 @@ dependencies = [
 [[package]]
 name = "geng-window"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -1822,6 +1784,7 @@ dependencies = [
  "log",
  "raw-window-handle",
  "serde",
+ "strum",
  "ugli",
  "wasm-bindgen",
  "web-sys",
@@ -3415,6 +3378,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustversion"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ffc183a10b4478d04cbbbfc96d0873219d962dd5accaff2ffbd4ceb7df837f4"
+
+[[package]]
 name = "ryu"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3655,6 +3624,28 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "strum"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "290d54ea6f91c969195bdbcd7442c8c2a2ba87da8bf60a7ee86a235d4bc1e125"
+dependencies = [
+ "strum_macros",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad8d03b598d3d0fff69bf533ee3ef19b8eeb342729596df84bcc7e1f96ec4059"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.32",
+]
 
 [[package]]
 name = "switch-resume"
@@ -3959,7 +3950,6 @@ checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
 [[package]]
 name = "ugli"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "batbox-color",
  "batbox-la",
@@ -3982,7 +3972,6 @@ dependencies = [
 [[package]]
 name = "ugli-derive"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -3993,7 +3982,6 @@ dependencies = [
 [[package]]
 name = "ugli-raw"
 version = "0.15.0"
-source = "git+https://github.com/geng-engine/geng#db161a66826b80739b6c864f27e62cc44557e203"
 dependencies = [
  "gl",
  "js-sys",

@@ -5,6 +5,7 @@ mod color;
 mod config;
 mod ctx;
 mod gizmo;
+mod keybind;
 mod keys;
 mod palette;
 mod plane;
@@ -16,6 +17,7 @@ mod wheel;
 use camera::Camera;
 use config::Config;
 use ctx::*;
+use keybind::KeyBind;
 use palette::Palette;
 use plane::Plane;
 use texture::Texture;
@@ -179,6 +181,78 @@ impl App {
                 }
             }
             self.toolbelt.current().handle_event(event.clone());
+
+            let keys = self.ctx.keys.clone();
+
+            if keys.switch_plane.matches(&event, &self.ctx) {
+                if self.state.planes.is_empty() {
+                    self.state.selected = None;
+                } else {
+                    self.state.selected = Some(
+                        self.state
+                            .selected
+                            .map_or(0, |idx| (idx + 1) % self.state.planes.len()),
+                    );
+                }
+            }
+
+            if keys.first_person.matches(&event, &self.ctx) {
+                self.toggle_first_person();
+            }
+
+            if keys.palette.matches(&event, &self.ctx) {
+                Palette::start(&mut self);
+            }
+
+            // https://stackoverflow.com/questions/31403723/how-to-declare-a-higher-ranked-lifetime-for-a-closure-argument
+            fn constrain_tool<
+                F: for<'a> Fn(&'a keys::ToolKeys) -> Option<(AnyTool, &'a KeyBind)>,
+            >(
+                f: F,
+            ) -> F {
+                f
+            }
+            let tool = constrain_tool(|keys: &keys::ToolKeys| -> Option<(AnyTool, &KeyBind)> {
+                if let Some(bind) = &keys.brush {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::Brush::default(&self.ctx)), bind));
+                    }
+                }
+                if let Some(bind) = &keys.eraser {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::Brush::eraser(&self.ctx)), bind));
+                    }
+                }
+                if let Some(bind) = &keys.transform {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::Transform::new(&self.ctx)), bind));
+                    }
+                }
+                if let Some(bind) = &keys.pick {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::Pick::new(&self.ctx)), bind));
+                    }
+                }
+                if let Some(bind) = &keys.create {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::Create::new(&self.ctx)), bind));
+                    }
+                }
+                None
+            });
+
+            if let Some((tool, bind)) = tool(&keys.tools.temp) {
+                self.start_temp_tool(
+                    tool,
+                    Some(match bind.key {
+                        keybind::KeyOrButton::Key(key) => geng::Event::KeyRelease { key },
+                        keybind::KeyOrButton::Mouse(button) => geng::Event::MouseRelease { button },
+                    }),
+                );
+            } else if let Some((tool, _bind)) = tool(&keys.tools.switch) {
+                self.switch_primary_tool(tool);
+            }
+
             match event {
                 geng::Event::MousePress {
                     button: geng::MouseButton::Left,
@@ -340,54 +414,6 @@ impl App {
                         .clone()
                         .window()
                         .with_framebuffer(|framebuffer| self.draw(framebuffer));
-                }
-                geng::Event::KeyPress { key } => {
-                    let keys = self.ctx.keys.clone();
-
-                    if key == keys.switch_plane {
-                        if self.state.planes.is_empty() {
-                            self.state.selected = None;
-                        } else {
-                            self.state.selected = Some(
-                                self.state
-                                    .selected
-                                    .map_or(0, |idx| (idx + 1) % self.state.planes.len()),
-                            );
-                        }
-                    }
-
-                    if key == keys.first_person {
-                        self.toggle_first_person();
-                    }
-
-                    if key == keys.palette {
-                        Palette::start(&mut self);
-                    }
-
-                    let tool = |keys: &keys::ToolKeys| -> Option<AnyTool> {
-                        if Some(key) == keys.brush {
-                            return Some(AnyTool::new(tools::Brush::default(&self.ctx)));
-                        }
-                        if Some(key) == keys.eraser {
-                            return Some(AnyTool::new(tools::Brush::eraser(&self.ctx)));
-                        }
-                        if Some(key) == keys.transform {
-                            return Some(AnyTool::new(tools::Transform::new(&self.ctx)));
-                        }
-                        if Some(key) == keys.pick {
-                            return Some(AnyTool::new(tools::Pick::new(&self.ctx)));
-                        }
-                        if Some(key) == keys.create {
-                            return Some(AnyTool::new(tools::Create::new(&self.ctx)));
-                        }
-                        None
-                    };
-
-                    if let Some(tool) = tool(&keys.tools.temp) {
-                        self.start_temp_tool(tool, Some(geng::Event::KeyRelease { key }));
-                    } else if let Some(tool) = tool(&keys.tools.switch) {
-                        self.switch_primary_tool(tool);
-                    }
                 }
                 _ => {}
             }

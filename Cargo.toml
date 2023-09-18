@@ -7,6 +7,6 @@ edition = "2021"
 assets = ["assets", "shaders", "config.toml", "keys.toml"]
 
 [dependencies]
-geng.git = "https://github.com/geng-engine/geng"
-# geng.path = "../geng/crates/geng"
+# geng.git = "https://github.com/geng-engine/geng"
+geng.path = "../geng/crates/geng"
 serde = "1"
