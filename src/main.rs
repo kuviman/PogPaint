@@ -35,7 +35,6 @@ pub struct State {
     camera: Camera,
     planes: Vec<Plane>,
     selected: Option<usize>,
-    scribble: Option<geng::SoundEffect>,
 }
 
 impl State {
@@ -54,11 +53,7 @@ impl State {
                 transform: mat4::identity(),
             }],
             selected: Some(0),
-            scribble: None,
         }
-    }
-    pub fn start_scribble(&mut self) {
-        self.scribble = Some(self.ctx.assets.scribble.play());
     }
 }
 

@@ -51,6 +51,13 @@ impl Brush {
 
 pub struct BrushStroke {
     prev_draw_pos: vec2<f32>,
+    sfx: geng::SoundEffect,
+}
+
+impl Drop for BrushStroke {
+    fn drop(&mut self) {
+        self.sfx.stop();
+    }
 }
 
 impl Tool for Brush {
@@ -63,8 +70,10 @@ impl Tool for Brush {
                 plane
                     .texture
                     .draw_line(pos, pos, self.draw_width(), self.actual_color());
-                state.start_scribble();
-                return Some(BrushStroke { prev_draw_pos: pos });
+                return Some(BrushStroke {
+                    prev_draw_pos: pos,
+                    sfx: self.ctx.assets.scribble.play(),
+                });
             }
         }
         None
@@ -84,11 +93,7 @@ impl Tool for Brush {
             }
         }
     }
-    fn end(&mut self, stroke: Self::Stroke, state: &mut State, ray: Ray) {
-        if let Some(mut sfx) = state.scribble.take() {
-            sfx.stop();
-        }
-    }
+    fn end(&mut self, stroke: Self::Stroke, state: &mut State, ray: Ray) {}
 
     fn draw(
         &mut self,
