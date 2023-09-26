@@ -1,13 +1,15 @@
 use super::*;
 
-pub struct Create {}
+pub struct Create {
+    ctx: Ctx,
+}
 
 impl Create {
     pub fn new(ctx: &Ctx) -> Self {
-        Self {}
+        Self { ctx: ctx.clone() }
     }
     fn new_transform(&self, state: &State, ray: Ray) -> Option<mat4<f32>> {
-        Some(state.ctx.round_matrix({
+        Some(self.ctx.round_matrix({
             let pos = match state.selected {
                 Some(idx) => {
                     let plane = &state.planes[idx];
@@ -31,7 +33,7 @@ impl Tool for Create {
     type Stroke = ();
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<()> {
         state.planes.push(Plane {
-            texture: Texture::new(&state.ctx),
+            texture: Texture::new(&self.ctx),
             transform: self.new_transform(state, ray)?,
         });
         state.selected = Some(state.planes.len() - 1);
@@ -53,10 +55,10 @@ impl Tool for Create {
         let Some(transform) = self.new_transform(state, ray) else {
             return;
         };
-        state.ctx.draw_grid(
+        self.ctx.draw_grid(
             framebuffer,
             &state.camera,
-            transform * mat4::scale_uniform(1.0 / state.ctx.config.grid.cell_size),
+            transform * mat4::scale_uniform(1.0 / self.ctx.config.grid.cell_size),
         );
     }
 }

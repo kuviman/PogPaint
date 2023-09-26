@@ -49,7 +49,7 @@ impl Tool for Transform {
             }
             Some(origin) => {
                 let transform = plane.transform * mat4::translate(origin.extend(0.0));
-                let mode = state
+                let mode = self
                     .ctx
                     .gizmo
                     .raycast(transform, ray)
@@ -134,7 +134,7 @@ impl Tool for Transform {
         if let Some(origin) = self.origin {
             if let Some(idx) = state.selected {
                 let plane = &state.planes[idx];
-                state.ctx.gizmo.draw(
+                self.ctx.gizmo.draw(
                     framebuffer,
                     &state.camera,
                     plane.transform * mat4::translate(origin.extend(0.0)),
@@ -142,7 +142,7 @@ impl Tool for Transform {
             }
         }
 
-        state.ctx.geng.default_font().draw(
+        self.ctx.geng.default_font().draw(
             framebuffer,
             ui_camera,
             "transform",

@@ -31,7 +31,6 @@ struct Cli {
 }
 
 pub struct State {
-    ctx: Ctx,
     camera: Camera,
     planes: Vec<Plane>,
     selected: Option<usize>,
@@ -40,7 +39,6 @@ pub struct State {
 impl State {
     pub fn new(ctx: &Ctx) -> Self {
         Self {
-            ctx: ctx.clone(),
             camera: Camera {
                 pos: vec3::ZERO,
                 rot: Angle::from_degrees(ctx.config.camera.rotation),

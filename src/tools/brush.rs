@@ -112,7 +112,7 @@ impl Tool for Brush {
                 let plane = &state.planes[idx];
 
                 let mut preview_plane = Plane {
-                    texture: Texture::new(&state.ctx),
+                    texture: Texture::new(&self.ctx),
                     transform: plane.transform,
                 };
 
@@ -158,7 +158,7 @@ impl Tool for Brush {
             None => "eraser",
         };
         let text = format!("{text} ({:.1} px)", self.size);
-        let font = state.ctx.geng.default_font();
+        let font = self.ctx.geng.default_font();
         let text_align = vec2::splat(geng::TextAlign::CENTER);
         let text_measure = font.measure(text.as_str(), text_align).unwrap();
         if let Some(color) = self.color {
@@ -166,9 +166,9 @@ impl Tool for Brush {
             let transform = status_pos * mat3::translate(vec2(text_measure.max.x + 1.5, 0.0));
             ugli::draw(
                 framebuffer,
-                &state.ctx.shaders.color_2d,
+                &self.ctx.shaders.color_2d,
                 ugli::DrawMode::TriangleFan,
-                &*state.ctx.quad,
+                &*self.ctx.quad,
                 (
                     ugli::uniforms! {
                         u_transform: transform,
