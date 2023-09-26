@@ -9,6 +9,7 @@ right = "D"
 back = "S"
 up = "Space"
 down = "C"
+look = "CapsLock"
 
 [tools]
 brush = "B"

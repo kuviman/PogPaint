@@ -281,35 +281,12 @@ impl App {
                 geng::Event::MousePress {
                     button: geng::MouseButton::Middle,
                 } => {
-                    let ray = self.ray(self.ctx.geng.window().cursor_position());
-
-                    let mut closest = None::<f32>;
-                    for plane in &self.state.planes {
-                        if let Some(raycast) = plane.raycast(ray) {
-                            if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
-                                continue;
-                            }
-                            closest = match closest {
-                                Some(current) => Some(current.min(raycast.t)),
-                                None => Some(raycast.t),
-                            };
-                        }
-                    }
-                    if let Some(t) = closest {
-                        self.drag_start = Some(ray.from + ray.dir * t);
-                    }
-
-                    if self.state.camera.distance != 0.0 {
-                        self.ctx.geng.window().lock_cursor();
-                    }
+                    self.start_camera_look();
                 }
                 geng::Event::MouseRelease {
                     button: geng::MouseButton::Middle,
                 } => {
-                    if self.state.camera.distance != 0.0 {
-                        self.ctx.geng.window().unlock_cursor();
-                    }
-                    self.drag_start = None;
+                    self.stop_camera_look();
                 }
                 geng::Event::RawMouseMove { delta } => {
                     let old_drag_camera = self
@@ -410,6 +387,12 @@ impl App {
                         .window()
                         .with_framebuffer(|framebuffer| self.draw(framebuffer));
                 }
+                geng::Event::KeyPress { key } if key == keys.camera.look => {
+                    self.start_camera_look();
+                }
+                geng::Event::KeyRelease { key } if key == keys.camera.look => {
+                    self.stop_camera_look();
+                }
                 _ => {}
             }
         }
@@ -454,6 +437,37 @@ impl App {
                 .map(|p| p.map(|x| x as f32))
                 .unwrap_or(self.framebuffer_size / 2.0),
         )
+    }
+
+    fn start_camera_look(&mut self) {
+        let ray = self.ray(self.ctx.geng.window().cursor_position());
+
+        let mut closest = None::<f32>;
+        for plane in &self.state.planes {
+            if let Some(raycast) = plane.raycast(ray) {
+                if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
+                    continue;
+                }
+                closest = match closest {
+                    Some(current) => Some(current.min(raycast.t)),
+                    None => Some(raycast.t),
+                };
+            }
+        }
+        if let Some(t) = closest {
+            self.drag_start = Some(ray.from + ray.dir * t);
+        }
+
+        if self.state.camera.distance != 0.0 {
+            self.ctx.geng.window().lock_cursor();
+        }
+    }
+
+    fn stop_camera_look(&mut self) {
+        if self.state.camera.distance != 0.0 {
+            self.ctx.geng.window().unlock_cursor();
+        }
+        self.drag_start = None;
     }
 }
 

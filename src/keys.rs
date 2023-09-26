@@ -8,6 +8,7 @@ pub struct Camera {
     pub back: geng::Key,
     pub up: geng::Key,
     pub down: geng::Key,
+    pub look: geng::Key,
 }
 
 #[derive(Deserialize)]
