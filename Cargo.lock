@@ -2986,6 +2986,7 @@ dependencies = [
 name = "pog-paint"
 version = "0.1.0"
 dependencies = [
+ "flate2",
  "geng",
  "serde",
 ]

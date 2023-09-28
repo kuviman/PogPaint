@@ -7,6 +7,7 @@ mod ctx;
 mod gizmo;
 mod keybind;
 mod keys;
+mod model;
 mod palette;
 mod plane;
 mod save;
@@ -19,6 +20,7 @@ use camera::Camera;
 use config::Config;
 use ctx::*;
 use keybind::KeyBind;
+use model::*;
 use palette::Palette;
 use plane::Plane;
 use texture::Texture;
@@ -35,11 +37,6 @@ pub struct State {
     camera: Camera,
     selected: Option<usize>,
     model: Model,
-}
-
-#[derive(Serialize)]
-pub struct Model {
-    planes: Vec<Plane>,
 }
 
 impl State {
@@ -90,10 +87,13 @@ pub struct App {
     toolbelt: Toolbelt,
     state: State,
     drag_start: Option<vec3<f32>>,
+    load_sender: std::sync::mpsc::Sender<Model>,
+    load_recv: std::sync::mpsc::Receiver<Model>,
 }
 
 impl App {
     pub async fn new(ctx: &Ctx) -> Self {
+        let (load_sender, load_recv) = std::sync::mpsc::channel();
         Self {
             ctx: ctx.clone(),
             framebuffer_size: vec2::splat(1.0),
@@ -109,6 +109,8 @@ impl App {
             wheel: None,
             state: State::new(ctx),
             drag_start: None,
+            load_sender,
+            load_recv,
         }
     }
 
@@ -174,6 +176,9 @@ impl App {
         let mut events = self.ctx.geng.window().events();
         let mut timer = Timer::new();
         while let Some(event) = events.next().await {
+            if let Ok(model) = self.load_recv.try_recv() {
+                self.state.model = model;
+            }
             // TODO color::handle_event(&mut self, &event);
             if let Some(temp) = &mut self.toolbelt.temp {
                 if temp.cancel_on == Some(event.clone()) {
