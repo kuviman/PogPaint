@@ -25,7 +25,7 @@ pub trait ContiniousWheel {
 
 pub enum WheelType {
     Items(Box<dyn ItemWheel>),
-    Continious(Box<dyn ContiniousWheel>),
+    Continuous(Box<dyn ContiniousWheel>),
 }
 
 pub struct Wheel {
@@ -89,7 +89,7 @@ pub fn draw(app: &App, wheel: &Wheel, framebuffer: &mut ugli::Framebuffer) {
                 &items(app, typ.item_count(), hover),
             );
         }
-        WheelType::Continious(typ) => {
+        WheelType::Continuous(typ) => {
             typ.draw(framebuffer, &app.ui_camera, transform, hover);
         }
     }

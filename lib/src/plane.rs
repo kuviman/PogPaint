@@ -11,10 +11,6 @@ pub struct Raycast {
 }
 
 impl Plane {
-    pub fn draw(&self, framebuffer: &mut ugli::Framebuffer, camera: &impl AbstractCamera3d) {
-        self.texture.draw(framebuffer, camera, self.transform);
-    }
-
     pub fn raycast(&self, ray: geng::camera::Ray) -> Option<Raycast> {
         let inv_transform = self.transform.inverse();
         let local_ray = geng::camera::Ray {

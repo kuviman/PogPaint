@@ -1,4 +1,8 @@
+#![allow(dead_code, unused_variables)]
+
 use geng::prelude::*;
+
+use pog_paint::*;
 
 mod camera;
 mod color;
@@ -7,11 +11,8 @@ mod ctx;
 mod gizmo;
 mod keybind;
 mod keys;
-mod model;
 mod palette;
-mod plane;
 mod save;
-mod texture;
 mod tool;
 mod tools;
 mod wheel;
@@ -20,10 +21,7 @@ use camera::Camera;
 use config::Config;
 use ctx::*;
 use keybind::KeyBind;
-use model::*;
 use palette::Palette;
-use plane::Plane;
-use texture::Texture;
 use tool::*;
 use wheel::*;
 
@@ -41,6 +39,11 @@ pub struct State {
 
 impl State {
     pub fn new(ctx: &Ctx) -> Self {
+        let mut model = Model::new(ctx.geng.ugli());
+        model.planes.push(Plane {
+            texture: Texture::new(ctx.geng.ugli()),
+            transform: mat4::identity(),
+        });
         Self {
             camera: Camera {
                 pos: vec3::ZERO,
@@ -50,12 +53,7 @@ impl State {
                 distance: ctx.config.camera.distance,
             },
             selected: Some(0),
-            model: Model {
-                planes: vec![Plane {
-                    texture: Texture::new(ctx),
-                    transform: mat4::identity(),
-                }],
-            },
+            model,
         }
     }
 }
@@ -124,14 +122,13 @@ impl App {
         );
 
         for plane in &self.state.model.planes {
-            plane.draw(framebuffer, &self.state.camera);
+            self.ctx.draw_plane(plane, framebuffer, &self.state.camera);
         }
 
         if let Some(idx) = self.state.selected {
             let plane = &self.state.model.planes[idx];
-            plane
-                .texture
-                .draw_outline(framebuffer, &self.state.camera, plane.transform);
+            self.ctx
+                .draw_plane_outline(plane, framebuffer, &self.state.camera);
         }
 
         if let Some(idx) = self.state.selected {
@@ -282,7 +279,7 @@ impl App {
                                         typ.select(hovered, &mut self);
                                     }
                                 }
-                                WheelType::Continious(typ) => typ.select(hover, &mut self),
+                                WheelType::Continuous(typ) => typ.select(hover, &mut self),
                             }
                         }
                     } else {

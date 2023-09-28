@@ -1,10 +1,12 @@
 use super::*;
 
-pub struct Pick {}
+pub struct Pick {
+    ctx: Ctx,
+}
 
 impl Pick {
     pub fn new(ctx: &Ctx) -> Self {
-        Self {}
+        Self { ctx: ctx.clone() }
     }
     fn find(&self, state: &State, ray: Ray) -> Option<usize> {
         let mut closest = None;
@@ -30,8 +32,8 @@ impl Tool for Pick {
         state.selected = self.find(state, ray);
         None
     }
-    fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {}
-    fn end(&mut self, stroke: Self::Stroke, state: &mut State, ray: Ray) {}
+    fn resume(&mut self, _stroke: &mut Self::Stroke, _state: &mut State, _ray: Ray) {}
+    fn end(&mut self, _stroke: Self::Stroke, _state: &mut State, _ray: Ray) {}
 
     fn draw(
         &mut self,
@@ -39,15 +41,14 @@ impl Tool for Pick {
         ray: Option<Ray>,
         _stroke: Option<&mut Self::Stroke>,
         state: &mut State,
-        ui_camera: &dyn AbstractCamera2d,
-        status_pos: mat3<f32>,
+        _ui_camera: &dyn AbstractCamera2d,
+        _status_pos: mat3<f32>,
     ) {
         let Some(ray) = ray else { return };
         if let Some(idx) = self.find(state, ray) {
             let plane = &state.model.planes[idx];
-            plane
-                .texture
-                .draw_outline(framebuffer, &state.camera, plane.transform);
+            self.ctx
+                .draw_plane_outline(plane, framebuffer, &state.camera);
         }
     }
 }

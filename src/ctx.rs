@@ -222,6 +222,74 @@ impl Ctx {
             },
         );
     }
+
+    pub fn draw_plane(&self, plane: &Plane, framebuffer: &mut ugli::Framebuffer, camera: &Camera) {
+        self.draw_plane_with(plane, framebuffer, camera, &self.shaders.texture, None);
+    }
+
+    pub fn draw_plane_outline(
+        &self,
+        plane: &Plane,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &Camera,
+    ) {
+        self.draw_plane_with(
+            plane,
+            framebuffer,
+            camera,
+            &self.shaders.outline,
+            Some(ugli::BlendMode {
+                rgb: ugli::ChannelBlendMode {
+                    src_factor: ugli::BlendFactor::OneMinusDstColor,
+                    dst_factor: ugli::BlendFactor::Zero,
+                    equation: ugli::BlendEquation::Add,
+                },
+                alpha: ugli::ChannelBlendMode {
+                    src_factor: ugli::BlendFactor::One,
+                    dst_factor: ugli::BlendFactor::Zero,
+                    equation: ugli::BlendEquation::Add,
+                },
+            }),
+        );
+    }
+
+    pub fn draw_plane_with(
+        &self,
+        plane: &Plane,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &Camera,
+        program: &ugli::Program,
+        blend_mode: Option<ugli::BlendMode>,
+    ) {
+        let Some(texture) = &plane.texture.texture else {
+            return;
+        };
+        let framebuffer_size = framebuffer.size().map(|x| x as f32);
+        let bb = plane.texture.bounding_box().unwrap().map(|x| x as f32);
+        let transform = plane.transform
+            * mat4::translate(bb.center().extend(0.0))
+            * mat4::scale(bb.size().extend(1.0) / 2.0);
+        ugli::draw(
+            framebuffer,
+            program,
+            ugli::DrawMode::TriangleFan,
+            &*self.quad,
+            (
+                ugli::uniforms! {
+                 u_texture: texture,
+                 u_texture_size: texture.size(),
+                 u_transform: transform,
+                 u_color: Rgba::WHITE,
+                },
+                camera.uniforms(framebuffer_size),
+            ),
+            ugli::DrawParameters {
+                depth_func: Some(ugli::DepthFunc::LessOrEqual),
+                blend_mode,
+                ..default()
+            },
+        );
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Eq)]

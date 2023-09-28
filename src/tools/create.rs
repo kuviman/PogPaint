@@ -33,7 +33,7 @@ impl Tool for Create {
     type Stroke = ();
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<()> {
         state.model.planes.push(Plane {
-            texture: Texture::new(&self.ctx),
+            texture: Texture::new(self.ctx.geng.ugli()),
             transform: self.new_transform(state, ray)?,
         });
         state.selected = Some(state.model.planes.len() - 1);

@@ -66,7 +66,7 @@ impl AnyTool {
         self.inner.draw(
             framebuffer,
             ray,
-            self.stroke.as_mut().map(|stroke| &mut **stroke),
+            self.stroke.as_deref_mut(),
             state,
             ui_camera,
             status_pos,

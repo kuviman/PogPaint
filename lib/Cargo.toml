@@ -1,0 +1,9 @@
+[package]
+name = "pog-paint"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+geng.workspace = true
+serde.workspace = true
+flate2.workspace = true

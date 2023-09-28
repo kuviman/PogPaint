@@ -47,6 +47,58 @@ impl Brush {
         let rounded = (self.size as f32 / 2.0).floor() * 2.0;
         (rounded + self.size as f32) / 2.0
     }
+
+    fn draw_line(&self, texture: &mut Texture, p1: vec2<f32>, p2: vec2<f32>, color: Rgba<f32>) {
+        let width = self.draw_width();
+        let bb = {
+            let bb = Aabb2::from_corners(p1, p2).extend_uniform(width);
+            Aabb2 {
+                min: bb.min.map(|x| x.floor() as i32),
+                max: bb.max.map(|x| x.ceil() as i32),
+            }
+        };
+        texture.draw(bb, |framebuffer, viewport| {
+            let dir = (p2 - p1).normalize_or_zero();
+            let normal = dir.rotate_90();
+            let transform = mat3::translate((p1 + p2) / 2.0)
+                * mat3::from_orts((p2 - p1) / 2.0, normal * width / 2.0);
+            ugli::draw(
+                framebuffer,
+                &self.ctx.shaders.color_2d,
+                ugli::DrawMode::TriangleFan,
+                &*self.ctx.quad,
+                ugli::uniforms! {
+                    u_projection_matrix: mat3::ortho(bb.map(|x| x as f32)),
+                    u_view_matrix: mat3::identity(),
+                    u_transform: transform,
+                    u_color: color,
+                },
+                ugli::DrawParameters {
+                    viewport: Some(viewport),
+                    ..default()
+                },
+            );
+            for p in [p1, p2] {
+                ugli::draw(
+                    framebuffer,
+                    &self.ctx.shaders.circle,
+                    ugli::DrawMode::TriangleFan,
+                    &*self.ctx.quad,
+                    ugli::uniforms! {
+                        u_projection_matrix: mat3::ortho(bb.map(|x| x as f32)),
+                        u_view_matrix: mat3::identity(),
+                        u_transform: mat3::translate(p) * mat3::scale_uniform(width / 2.0 + 0.5),
+                        u_color: color,
+                        u_radius: (width / 2.0) / (width / 2.0 + 0.5),
+                    },
+                    ugli::DrawParameters {
+                        viewport: Some(viewport),
+                        ..default()
+                    },
+                );
+            }
+        });
+    }
 }
 
 pub struct BrushStroke {
@@ -67,9 +119,7 @@ impl Tool for Brush {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                plane
-                    .texture
-                    .draw_line(pos, pos, self.draw_width(), self.actual_color());
+                self.draw_line(&mut plane.texture, pos, pos, self.actual_color());
                 return Some(BrushStroke {
                     prev_draw_pos: pos,
                     sfx: self.ctx.assets.scribble.play(),
@@ -83,10 +133,10 @@ impl Tool for Brush {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                plane.texture.draw_line(
+                self.draw_line(
+                    &mut plane.texture,
                     stroke.prev_draw_pos,
                     pos,
-                    self.draw_width(),
                     self.actual_color(),
                 );
                 stroke.prev_draw_pos = pos;
@@ -112,16 +162,16 @@ impl Tool for Brush {
                 let plane = &state.model.planes[idx];
 
                 let mut preview_plane = Plane {
-                    texture: Texture::new(&self.ctx),
+                    texture: Texture::new(self.ctx.geng.ugli()),
                     transform: plane.transform,
                 };
 
                 if let Some(raycast) = preview_plane.raycast(ray) {
                     let pos = self.round_pos(raycast.texture_pos);
-                    preview_plane.texture.draw_line(
+                    self.draw_line(
+                        &mut preview_plane.texture,
                         pos,
                         pos,
-                        self.draw_width(),
                         self.color.map_or(Rgba::WHITE, Into::into),
                     );
 
@@ -139,16 +189,13 @@ impl Tool for Brush {
                             -EPS
                         }
                     };
-                    let transform =
-                        preview_plane.transform * mat4::translate(vec3(0.0, 0.0, offset));
+                    preview_plane.transform *= mat4::translate(vec3(0.0, 0.0, offset));
                     if self.color.is_some() {
-                        preview_plane
-                            .texture
-                            .draw(framebuffer, &state.camera, transform)
+                        self.ctx
+                            .draw_plane(&preview_plane, framebuffer, &state.camera);
                     }
-                    preview_plane
-                        .texture
-                        .draw_outline(framebuffer, &state.camera, transform);
+                    self.ctx
+                        .draw_plane_outline(&preview_plane, framebuffer, &state.camera);
                 }
             }
         }
