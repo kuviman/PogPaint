@@ -35,9 +35,9 @@ checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 
 [[package]]
 name = "aho-corasick"
-version = "1.0.5"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c378d78423fdad8089616f827526ee33c19f2fddbd5de1629152c9593ba4783"
+checksum = "ea5d730647d4fadd988536d06fecce94b7b4f2a7efdae548f1cf4b63205518ab"
 dependencies = [
  "memchr",
 ]
@@ -180,9 +180,9 @@ dependencies = [
 
 [[package]]
 name = "async-compat"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b48b4ff0c2026db683dea961cd8ea874737f56cffca86fa84415eaddc51c00d"
+checksum = "f4fa5132bc2934f31ee61b8ff6742dc9f7efdb7568b02f59cf9c7a4a0528bf67"
 dependencies = [
  "futures-core",
  "futures-io",
@@ -193,14 +193,14 @@ dependencies = [
 
 [[package]]
 name = "async-executor"
-version = "1.5.1"
+version = "1.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fa3dc5f2a8564f07759c008b9109dc0d39de92a88d5588b8a5036d286383afb"
+checksum = "2c1da3ae8dabd9c00f453a329dfe1fb28da3c0a72e2478cdcd93171740c20499"
 dependencies = [
  "async-lock",
  "async-task",
  "concurrent-queue",
- "fastrand",
+ "fastrand 2.0.1",
  "futures-lite",
  "slab",
 ]
@@ -266,7 +266,7 @@ checksum = "5fd55a5ba1179988837d24ab4c7cc8ed6efdeff578ede0416b4225a5fca35bd0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -297,9 +297,9 @@ dependencies = [
 
 [[package]]
 name = "async-task"
-version = "4.4.0"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecc7ab41815b3c653ccd2978ec3255c81349336702dfdf62ee6f7069b12a3aae"
+checksum = "b9441c6b2fe128a7c2bf680a44c34d0df31ce09e5b7e401fcca3faa483dbc921"
 
 [[package]]
 name = "async-trait"
@@ -309,14 +309,14 @@ checksum = "bc00ceb34980c03614e35a3a4e218276a0a824e911d07651cd0d858a51e8c0f0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
 name = "atomic-waker"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1181e1e0d1fce796a03db1ae795d67167da795f9cf4a39c37589e85ef57f26d3"
+checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atomic_float"
@@ -354,6 +354,7 @@ checksum = "9ba43ea6f343b788c8764558649e08df62f86c6ef251fdaeb1ffd010a9ae50a2"
 [[package]]
 name = "batbox"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "async-compat",
@@ -415,6 +416,7 @@ dependencies = [
 [[package]]
 name = "batbox-android"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "android-activity",
  "jni 0.21.1",
@@ -426,6 +428,7 @@ dependencies = [
 [[package]]
 name = "batbox-approx"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-num",
 ]
@@ -433,6 +436,7 @@ dependencies = [
 [[package]]
 name = "batbox-cli"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "clap",
  "log",
@@ -443,6 +447,7 @@ dependencies = [
 [[package]]
 name = "batbox-cmp"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-range",
 ]
@@ -450,6 +455,7 @@ dependencies = [
 [[package]]
 name = "batbox-collection"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-collection-derive",
  "batbox-diff",
@@ -459,6 +465,7 @@ dependencies = [
 [[package]]
 name = "batbox-collection-derive"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -470,6 +477,7 @@ dependencies = [
 [[package]]
 name = "batbox-color"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "batbox-approx",
@@ -480,6 +488,7 @@ dependencies = [
 [[package]]
 name = "batbox-diff"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-diff-derive",
  "serde",
@@ -488,6 +497,7 @@ dependencies = [
 [[package]]
 name = "batbox-diff-derive"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -498,6 +508,7 @@ dependencies = [
 [[package]]
 name = "batbox-file"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "async-compat",
@@ -522,6 +533,7 @@ dependencies = [
 [[package]]
 name = "batbox-file-dialog"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "batbox-file",
@@ -535,6 +547,7 @@ dependencies = [
 [[package]]
 name = "batbox-i18n"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-i18n-macro",
  "libc",
@@ -546,6 +559,7 @@ dependencies = [
 [[package]]
 name = "batbox-i18n-macro"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -556,6 +570,7 @@ dependencies = [
 [[package]]
 name = "batbox-la"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-approx",
  "batbox-cmp",
@@ -568,6 +583,7 @@ dependencies = [
 [[package]]
 name = "batbox-lapp"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-approx",
  "batbox-cmp",
@@ -579,6 +595,7 @@ dependencies = [
 [[package]]
 name = "batbox-logger"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "backtrace",
  "env_logger",
@@ -590,6 +607,7 @@ dependencies = [
 [[package]]
 name = "batbox-num"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "getrandom 0.2.10",
  "rand 0.8.5",
@@ -599,6 +617,7 @@ dependencies = [
 [[package]]
 name = "batbox-preferences"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "directories",
  "log",
@@ -610,10 +629,12 @@ dependencies = [
 [[package]]
 name = "batbox-range"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 
 [[package]]
 name = "batbox-time"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "async-std",
  "js-sys",
@@ -624,6 +645,7 @@ dependencies = [
 [[package]]
 name = "batbox-tuple-macros"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 
 [[package]]
 name = "bincode"
@@ -636,11 +658,11 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.64.0"
+version = "0.68.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4243e6031260db77ede97ad86c27e501d646a27ab57b59a574f725d98ab1fb4"
+checksum = "726e4313eb6ec35d2730258ad4e15b547ee75d6afaa1361a922e78e59b7d8078"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.4.0",
  "cexpr",
  "clang-sys",
  "lazy_static",
@@ -651,7 +673,7 @@ dependencies = [
  "regex",
  "rustc-hash",
  "shlex",
- "syn 1.0.109",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -717,24 +739,25 @@ dependencies = [
 
 [[package]]
 name = "blocking"
-version = "1.3.1"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77231a1c8f801696fc0123ec6150ce92cffb8e164a02afb9c8ddee0e9b65ad65"
+checksum = "94c4ef1f913d78636d78d538eec1f18de81e481f44b1be0a81060090530846e1"
 dependencies = [
  "async-channel",
  "async-lock",
  "async-task",
- "atomic-waker",
- "fastrand",
+ "fastrand 2.0.1",
+ "futures-io",
  "futures-lite",
- "log",
+ "piper",
+ "tracing",
 ]
 
 [[package]]
 name = "bumpalo"
-version = "3.13.0"
+version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3e2c3daef883ecc1b5d58c15adae93470a91d425f3532ba1695849656af3fc1"
+checksum = "7f30e7476521f6f8af1a1c4c0b8cc94f0bee37d91763d0ca2665f299b6cd8aec"
 
 [[package]]
 name = "byte-tools"
@@ -849,9 +872,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.4.3"
+version = "4.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84ed82781cea27b43c9b106a979fe450a13a31aab0500595fb3fc06616de08e6"
+checksum = "824956d0dca8334758a5b7f7e50518d66ea319330cbceedcf76905c2f6ab30e3"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -859,9 +882,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.4.2"
+version = "4.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bb9faaa7c2ef94b2743a21f5a29e6f0010dff4caa69ac8e9d6cf8b6fa74da08"
+checksum = "122ec64120a49b4563ccaedcbea7818d069ed8e9aa6d829b82d8a4128936b2ab"
 dependencies = [
  "anstream",
  "anstyle",
@@ -878,7 +901,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -917,9 +940,9 @@ dependencies = [
 
 [[package]]
 name = "concurrent-queue"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62ec6771ecfa0762d24683ee5a32ad78487a3d3afdc0fb8cae19d2c5deb50b7c"
+checksum = "f057a694a54f12365049b0958a1685bb52d567f5593b355fbf685838e873d400"
 dependencies = [
  "crossbeam-utils",
 ]
@@ -999,9 +1022,9 @@ dependencies = [
 
 [[package]]
 name = "coreaudio-sys"
-version = "0.2.12"
+version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f034b2258e6c4ade2f73bf87b21047567fb913ee9550837c2316d139b0262b24"
+checksum = "d8478e5bdad14dce236b9898ea002eabfa87cbe14f0aa538dbe3b6a4bec4332d"
 dependencies = [
  "bindgen",
 ]
@@ -1212,9 +1235,9 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
 name = "dyn-clone"
-version = "1.0.13"
+version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbfc4744c1b8f2a09adc0e55242f60b1af195d88596bd8700be74418c056c555"
+checksum = "23d2f3407d9a573d666de4b5bdf10569d73ca9478087346697dcbae6244bfbcd"
 
 [[package]]
 name = "either"
@@ -1279,9 +1302,9 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
 name = "exr"
-version = "1.7.0"
+version = "1.71.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1e481eb11a482815d3e9d618db8c42a93207134662873809335a92327440c18"
+checksum = "832a761f35ab3e6664babfbdc6cef35a4860e816ec3916dcfd0882954e98a8a8"
 dependencies = [
  "bit_field",
  "flume",
@@ -1307,6 +1330,12 @@ checksum = "e51093e27b0797c359783294ca4f0a911c270184cb10f85783b118614a1501be"
 dependencies = [
  "instant",
 ]
+
+[[package]]
+name = "fastrand"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
 
 [[package]]
 name = "fdeflate"
@@ -1351,14 +1380,10 @@ dependencies = [
 
 [[package]]
 name = "flume"
-version = "0.10.14"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1657b4441c3403d9f7b3409e47575237dac27b1b5726df654a6ecbf92f0f7577"
+checksum = "55ac459de2512911e4b674ce33cf20befaba382d05b62b008afc1c8b57cbf181"
 dependencies = [
- "futures-core",
- "futures-sink",
- "nanorand",
- "pin-project",
  "spin 0.9.8",
 ]
 
@@ -1471,7 +1496,7 @@ version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49a9d51ce47660b1e808d3c990b4709f2f415d928835a17dfd16991515c46bce"
 dependencies = [
- "fastrand",
+ "fastrand 1.9.0",
  "futures-core",
  "futures-io",
  "memchr",
@@ -1488,7 +1513,7 @@ checksum = "89ca545a94061b6365f2c7355b4b32bd20df3ff95f02da9329b34ccc3bd6ee72"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -1542,6 +1567,7 @@ dependencies = [
 [[package]]
 name = "geng"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox",
  "console_error_panic_hook",
@@ -1568,6 +1594,7 @@ dependencies = [
 [[package]]
 name = "geng-asset"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "batbox-file",
@@ -1589,6 +1616,7 @@ dependencies = [
 [[package]]
 name = "geng-asset-derive"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -1599,6 +1627,7 @@ dependencies = [
 [[package]]
 name = "geng-async-state"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "async-trait",
  "batbox-la",
@@ -1614,6 +1643,7 @@ dependencies = [
 [[package]]
 name = "geng-audio"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "atomic_float",
@@ -1632,6 +1662,7 @@ dependencies = [
 [[package]]
 name = "geng-camera"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-la",
  "batbox-lapp",
@@ -1642,6 +1673,7 @@ dependencies = [
 [[package]]
 name = "geng-debug_overlay"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-color",
  "batbox-la",
@@ -1659,6 +1691,7 @@ dependencies = [
 [[package]]
 name = "geng-draw2d"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-approx",
  "batbox-color",
@@ -1673,6 +1706,7 @@ dependencies = [
 [[package]]
 name = "geng-font"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "batbox-color",
@@ -1689,6 +1723,7 @@ dependencies = [
 [[package]]
 name = "geng-net"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "batbox-time",
@@ -1706,6 +1741,7 @@ dependencies = [
 [[package]]
 name = "geng-obj"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-la",
  "ugli",
@@ -1727,6 +1763,7 @@ dependencies = [
 [[package]]
 name = "geng-shader"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "ugli",
@@ -1735,6 +1772,7 @@ dependencies = [
 [[package]]
 name = "geng-state"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "geng-ui",
  "geng-window",
@@ -1744,6 +1782,7 @@ dependencies = [
 [[package]]
 name = "geng-texture-atlas"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-la",
  "ugli",
@@ -1752,6 +1791,7 @@ dependencies = [
 [[package]]
 name = "geng-ui"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-cmp",
  "batbox-color",
@@ -1768,6 +1808,7 @@ dependencies = [
 [[package]]
 name = "geng-window"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -2016,15 +2057,15 @@ checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "hermit-abi"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
+checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
 name = "hound"
-version = "3.5.0"
+version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d13cdbd5dbb29f9c88095bbdc2590c9cba0d0a1269b983fef6b2cdd7e9f4db1"
+checksum = "62adaabb884c94955b19907d60019f4e145d091c75345379e70d1ee696f7854f"
 
 [[package]]
 name = "http"
@@ -2151,9 +2192,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5477fe2230a79769d8dc68e0eabf5437907c0457a5614a9e8dddb67f65eb65d"
+checksum = "ad227c3af19d4914570ad36d30409928b75967c298feb9ea1969db3a610bb14e"
 dependencies = [
  "equivalent",
  "hashbrown 0.14.0",
@@ -2231,7 +2272,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb0889898416213fab133e1d33a0e5858a48177452750691bde3666d0fdbaf8b"
 dependencies = [
  "hermit-abi",
- "rustix 0.38.13",
+ "rustix 0.38.14",
  "windows-sys 0.48.0",
 ]
 
@@ -2403,9 +2444,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.147"
+version = "0.2.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
+checksum = "9cdc71e17332e86d2e1d38c1f99edcb6288ee11b815fb1a4b049eaa2114d369b"
 
 [[package]]
 name = "libloading"
@@ -2603,15 +2644,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nanorand"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a51313c5820b0b02bd422f4b44776fbf47961755c74ce64afc73bfad10226c3"
-dependencies = [
- "getrandom 0.2.10",
-]
-
-[[package]]
 name = "ndk"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2805,7 +2837,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -2902,14 +2934,14 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "706de7e2214113d63a8238d1910463cfce781129a6f263d13fdb09ff64355ba4"
 dependencies = [
- "ttf-parser 0.19.1",
+ "ttf-parser 0.19.2",
 ]
 
 [[package]]
 name = "parking"
-version = "2.1.0"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14f2252c834a40ed9bb5422029649578e63aa341ac401f74e719dd1afda8394e"
+checksum = "e52c774a4c39359c1d1c52e43f73dd91a75a614652c825408eec30c95a9b2067"
 
 [[package]]
 name = "parking_lot"
@@ -2947,26 +2979,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b2a4787296e9989611394c33f193f676704af1686e70b8f8033ab5ba9a35a94"
 
 [[package]]
-name = "pin-project"
-version = "1.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fda4ed1c6c173e3fc7a83629421152e01d7b1f9b7f65fb301e490e8cfc656422"
-dependencies = [
- "pin-project-internal",
-]
-
-[[package]]
-name = "pin-project-internal"
-version = "1.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4359fd9c9171ec6e8c62926d6faaf553a8dc3f64e1507e76da7911b4f6a04405"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.32",
-]
-
-[[package]]
 name = "pin-project-lite"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2977,6 +2989,17 @@ name = "pin-utils"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
+
+[[package]]
+name = "piper"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "668d31b1c4eba19242f2088b2bf3316b82ca31082a8335764db4e083db7485d4"
+dependencies = [
+ "atomic-waker",
+ "fastrand 2.0.1",
+ "futures-io",
+]
 
 [[package]]
 name = "pkg-config"
@@ -3039,9 +3062,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.66"
+version = "1.0.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18fb31db3f9bddb2ea821cde30a9f70117e3f119938b5ee630b7403aa6e2ead9"
+checksum = "3d433d9f1a3e8c1263d9456598b16fec66f4acc9a74dacffd35c7bb09b3a1328"
 dependencies = [
  "unicode-ident",
 ]
@@ -3152,9 +3175,9 @@ checksum = "f2ff9a1f06a88b01621b7ae906ef0211290d1c8a168a15542486a8f61c0833b9"
 
 [[package]]
 name = "rayon"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d2df5196e37bcc87abebc0053e20787d73847bb33134a69841207dd0a47f03b"
+checksum = "9c27db03db7734835b3f53954b534c91069375ce6ccaa2e065441e07d9b6cdb1"
 dependencies = [
  "either",
  "rayon-core",
@@ -3162,14 +3185,12 @@ dependencies = [
 
 [[package]]
 name = "rayon-core"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b8f95bd6966f5c87776639160a66bd8ab9895d9d4ab01ddba9fc60661aebe8d"
+checksum = "5ce3fb6ad83f861aac485e76e1985cd109d9a3713802152be56c3b1f0e0658ed"
 dependencies = [
- "crossbeam-channel",
  "crossbeam-deque",
  "crossbeam-utils",
- "num_cpus",
 ]
 
 [[package]]
@@ -3335,9 +3356,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.13"
+version = "0.38.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7db8590df6dfcd144d22afd1b83b36c21a18d7cbc1dc4bb5295a8712e9eb662"
+checksum = "747c788e9ce8e92b12cd485c49ddf90723550b654b32508f979b71a7b1ecda4f"
 dependencies = [
  "bitflags 2.4.0",
  "errno",
@@ -3369,9 +3390,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.101.5"
+version = "0.101.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45a27e3b59326c16e23d30aeb7a36a24cc0d29e71d68ff611cdfb4a01d013bed"
+checksum = "3c7d5dece342910d9ba34d259310cae3e0154b873b35408b787b59bce53d34fe"
 dependencies = [
  "ring",
  "untrusted",
@@ -3441,9 +3462,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0293b4b29daaf487284529cc2f5675b8e57c61f70167ba415a463651fd6a918"
+checksum = "ad977052201c6de01a8ef2aa3378c4bd23217a056337d1d6da40468d267a4fb0"
 
 [[package]]
 name = "serde"
@@ -3473,14 +3494,14 @@ checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
 name = "serde_json"
-version = "1.0.106"
+version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cc66a619ed80bf7a0f6b17dd063a84b88f6dea1813737cf469aef1d081142c2"
+checksum = "6b420ce6e3d8bd882e9b243c6eed35dbc9a6110c9769e74b584e0d68d1f20c65"
 dependencies = [
  "itoa",
  "ryu",
@@ -3543,9 +3564,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.11.0"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62bb4feee49fdd9f707ef802e22365a35de4b7b299de4763d44bfea899442ff9"
+checksum = "942b4a808e05215192e39f4ab80813e599068285906cc91aa64f923db842bd5a"
 
 [[package]]
 name = "smithay-client-toolkit"
@@ -3644,7 +3665,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -3724,9 +3745,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.32"
+version = "2.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "239814284fd6f1a4ffe4ca893952cdd93c224b6a1571c9a9eadd670295c0c9e2"
+checksum = "7303ef2c05cd654186cb250d29049a24840ca25d2747c25c0381c8d9e2f582e8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3735,31 +3756,31 @@ dependencies = [
 
 [[package]]
 name = "termcolor"
-version = "1.2.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be55cf8942feac5c765c2c993422806843c9a9a45d4d5c407ad6dd2ea95eb9b6"
+checksum = "6093bad37da69aab9d123a8091e4be0aa4a03e4d601ec641c327398315f62b64"
 dependencies = [
  "winapi-util",
 ]
 
 [[package]]
 name = "thiserror"
-version = "1.0.48"
+version = "1.0.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d6d7a740b8a666a7e828dd00da9c0dc290dff53154ea77ac109281de90589b7"
+checksum = "1177e8c6d7ede7afde3585fd2513e611227efd6481bd78d2e82ba1ce16557ed4"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.48"
+version = "1.0.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
+checksum = "10712f02019e9288794769fba95cd6847df9874d49d871d062172f9dd41bc4cc"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -3859,9 +3880,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "806fe8c2c87eccc8b3267cbae29ed3ab2d0bd37fca70ab622e46aaa9375ddb7d"
+checksum = "1d68074620f57a0b21594d9735eb2e98ab38b17f80d3fcb189fca266771ca60d"
 dependencies = [
  "bytes 1.5.0",
  "futures-core",
@@ -3892,7 +3913,7 @@ version = "0.19.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
 dependencies = [
- "indexmap 2.0.0",
+ "indexmap 2.0.1",
  "toml_datetime",
  "winnow",
 ]
@@ -3937,19 +3958,20 @@ checksum = "0609f771ad9c6155384897e1df4d948e692667cc0588548b68eb44d052b27633"
 
 [[package]]
 name = "ttf-parser"
-version = "0.19.1"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a464a4b34948a5f67fddd2b823c62d9d92e44be75058b99939eae6c5b6960b33"
+checksum = "49d64318d8311fc2668e48b63969f4343e0a85c4a109aa8460d6672e364b8bd1"
 
 [[package]]
 name = "typenum"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
 name = "ugli"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "batbox-color",
  "batbox-la",
@@ -3972,6 +3994,7 @@ dependencies = [
 [[package]]
 name = "ugli-derive"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -3982,6 +4005,7 @@ dependencies = [
 [[package]]
 name = "ugli-raw"
 version = "0.15.0"
+source = "git+https://github.com/geng-engine/geng#cdca83deb83cde26706ae9cd0641be3511ebc6a0"
 dependencies = [
  "gl",
  "js-sys",
@@ -3997,9 +4021,9 @@ checksum = "92888ba5573ff080736b3648696b70cafad7d250551175acbaa4e0385b3e1460"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
+checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "unicode-normalization"
@@ -4065,9 +4089,9 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "waker-fn"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d5b2c62b4012a3e1eca5a7e077d13b3bf498c4073e33ccd58626607748ceeca"
+checksum = "f3c4517f54858c779bbcbf228f4fca63d121bf85fbecb2dc578cdf4a39395690"
 
 [[package]]
 name = "walkdir"
@@ -4123,7 +4147,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
  "wasm-bindgen-shared",
 ]
 
@@ -4157,7 +4181,7 @@ checksum = "54681b18a46765f095758388f2d0cf16eb8d4169b639ab575a8f5693af210c7b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -4331,9 +4355,9 @@ checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
 
 [[package]]
 name = "winapi-util"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70ec6ce85bb158151cae5e5c87f95a8e97d2c0c4b001223f33a334e3ce5de178"
+checksum = "f29e6f9198ba0d26b4c9f07dbe6f9ed633e1f3d5b8b414090084349e46a52596"
 dependencies = [
  "winapi 0.3.9",
 ]
@@ -4636,9 +4660,9 @@ checksum = "054a8e68b76250b253f671d1268cb7f1ae089ec35e195b2efb2a4e9a836d0621"
 
 [[package]]
 name = "xml-rs"
-version = "0.8.18"
+version = "0.8.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bab77e97b50aee93da431f2cee7cd0f43b4d1da3c408042f2d7d164187774f0a"
+checksum = "0fcb9cbac069e033553e8bb871be2fbdffcab578eb25bd0f7c508cedc6dcd75a"
 
 [[package]]
 name = "zune-inflate"
