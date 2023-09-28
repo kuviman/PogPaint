@@ -1,3 +1,5 @@
+save = "ControlLeft-S"
+load = "ControlLeft-O"
 palette = "Q"
 first_person = "F"
 switch_plane = "Tab"

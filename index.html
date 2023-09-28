@@ -100,7 +100,7 @@
         </div>
     </div>
     <script type="module">
-        import init from "./pog-paint.js";
+        import init from "./pog-paint-bin.js";
 
         function updateBodySize() {
             // For the rare legacy browsers that don't support it
@@ -159,7 +159,7 @@
             progressText.innerText = width;
         };
 
-        init(load_wasm("pog-paint.wasm", window.gengUpdateProgress));
+        init(load_wasm("pog-paint-bin.wasm", window.gengUpdateProgress));
     </script>
 </body>
 
