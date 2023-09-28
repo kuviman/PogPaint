@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::*;
 
 pub struct Shaders {
@@ -114,11 +116,15 @@ pub struct QuadVertex {
     pub a_pos: vec2<f32>,
 }
 
+fn data_dir() -> PathBuf {
+    run_dir().join("data")
+}
+
 impl Ctx {
     pub async fn new(geng: &Geng) -> Self {
         let shaders: Rc<Shaders> = geng
             .asset_manager()
-            .load(run_dir().join("shaders"))
+            .load(data_dir().join("shaders"))
             .await
             .unwrap();
         let quad = Rc::new(ugli::VertexBuffer::new_static(
@@ -140,11 +146,11 @@ impl Ctx {
         ));
         let config: Rc<Config> = geng
             .asset_manager()
-            .load(run_dir().join("config.toml"))
+            .load(data_dir().join("config.toml"))
             .await
             .unwrap();
         let keys: Rc<keys::Config> = Rc::new(
-            file::load_detect(run_dir().join("keys.toml"))
+            file::load_detect(data_dir().join("keys.toml"))
                 .await
                 .unwrap(),
         );
@@ -177,7 +183,7 @@ impl Ctx {
         }));
         let assets = Rc::new(
             geng.asset_manager()
-                .load(run_dir().join("assets"))
+                .load(data_dir().join("assets"))
                 .await
                 .unwrap(),
         );

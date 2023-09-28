@@ -13,7 +13,7 @@ version = "0.1.0"
 edition = "2021"
 
 [package.metadata.geng]
-assets = ["assets", "shaders", "config.toml", "keys.toml"]
+assets = ["data"]
 
 [dependencies]
 geng.workspace = true
