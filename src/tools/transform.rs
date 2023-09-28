@@ -39,7 +39,7 @@ impl Tool for Transform {
         let Some(idx) = state.selected else {
             return None;
         };
-        let plane = &state.planes[idx];
+        let plane = &state.model.planes[idx];
         match self.origin {
             None => {
                 if let Some(raycast) = plane.raycast(ray) {
@@ -80,7 +80,7 @@ impl Tool for Transform {
     }
 
     fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {
-        let plane = &mut state.planes[state.selected.unwrap()];
+        let plane = &mut state.model.planes[state.selected.unwrap()];
         let origin =
             (stroke.original_transform * self.origin.unwrap().extend(0.0).extend(1.0)).into_3d();
 
@@ -133,7 +133,7 @@ impl Tool for Transform {
     ) {
         if let Some(origin) = self.origin {
             if let Some(idx) = state.selected {
-                let plane = &state.planes[idx];
+                let plane = &state.model.planes[idx];
                 self.ctx.gizmo.draw(
                     framebuffer,
                     &state.camera,

@@ -12,7 +12,7 @@ impl Create {
         Some(self.ctx.round_matrix({
             let pos = match state.selected {
                 Some(idx) => {
-                    let plane = &state.planes[idx];
+                    let plane = &state.model.planes[idx];
                     let Some(raycast) = plane.raycast(ray) else {
                         return None;
                     };
@@ -32,11 +32,11 @@ impl Create {
 impl Tool for Create {
     type Stroke = ();
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<()> {
-        state.planes.push(Plane {
+        state.model.planes.push(Plane {
             texture: Texture::new(&self.ctx),
             transform: self.new_transform(state, ray)?,
         });
-        state.selected = Some(state.planes.len() - 1);
+        state.selected = Some(state.model.planes.len() - 1);
         None
     }
     fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {}

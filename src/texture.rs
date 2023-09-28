@@ -6,6 +6,31 @@ pub struct Texture {
     bb: Aabb2<i32>,
 }
 
+impl Serialize for Texture {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut s = serializer.serialize_struct("Texture", 2)?;
+        s.serialize_field("bb", &self.bb)?;
+
+        let framebuffer = self.texture.as_ref().map(|texture| {
+            ugli::FramebufferRead::new_color(
+                self.ctx.geng.ugli(),
+                ugli::ColorAttachmentRead::Texture(texture),
+            )
+        });
+        let color_data = framebuffer
+            .as_ref()
+            .map(|framebuffer| framebuffer.read_color());
+        let data = color_data.as_ref().map(|color_data| color_data.data());
+
+        s.serialize_field("data", &data)?;
+        s.end()
+    }
+}
+
 impl Texture {
     pub fn new(ctx: &Ctx) -> Self {
         Self {

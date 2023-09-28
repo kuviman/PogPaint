@@ -9,6 +9,7 @@ mod keybind;
 mod keys;
 mod palette;
 mod plane;
+mod save;
 mod texture;
 mod tool;
 mod tools;
@@ -32,8 +33,13 @@ struct Cli {
 
 pub struct State {
     camera: Camera,
-    planes: Vec<Plane>,
     selected: Option<usize>,
+    model: Model,
+}
+
+#[derive(Serialize)]
+pub struct Model {
+    planes: Vec<Plane>,
 }
 
 impl State {
@@ -46,11 +52,13 @@ impl State {
                 attack: Angle::from_degrees(ctx.config.camera.attack),
                 distance: ctx.config.camera.distance,
             },
-            planes: vec![Plane {
-                texture: Texture::new(ctx),
-                transform: mat4::identity(),
-            }],
             selected: Some(0),
+            model: Model {
+                planes: vec![Plane {
+                    texture: Texture::new(ctx),
+                    transform: mat4::identity(),
+                }],
+            },
         }
     }
 }
@@ -113,12 +121,12 @@ impl App {
             None,
         );
 
-        for plane in &self.state.planes {
+        for plane in &self.state.model.planes {
             plane.draw(framebuffer, &self.state.camera);
         }
 
         if let Some(idx) = self.state.selected {
-            let plane = &self.state.planes[idx];
+            let plane = &self.state.model.planes[idx];
             plane
                 .texture
                 .draw_outline(framebuffer, &self.state.camera, plane.transform);
@@ -128,7 +136,7 @@ impl App {
             self.ctx.draw_grid(
                 framebuffer,
                 &self.state.camera,
-                self.state.planes[idx].transform,
+                self.state.model.planes[idx].transform,
             );
         }
 
@@ -177,14 +185,21 @@ impl App {
 
             let keys = self.ctx.keys.clone();
 
+            if keys.save.matches(&event, &self.ctx) {
+                self.save();
+            }
+            if keys.load.matches(&event, &self.ctx) {
+                self.load();
+            }
+
             if keys.switch_plane.matches(&event, &self.ctx) {
-                if self.state.planes.is_empty() {
+                if self.state.model.planes.is_empty() {
                     self.state.selected = None;
                 } else {
                     self.state.selected = Some(
                         self.state
                             .selected
-                            .map_or(0, |idx| (idx + 1) % self.state.planes.len()),
+                            .map_or(0, |idx| (idx + 1) % self.state.model.planes.len()),
                     );
                 }
             }
@@ -441,7 +456,7 @@ impl App {
         let ray = self.ray(self.ctx.geng.window().cursor_position());
 
         let mut closest = None::<f32>;
-        for plane in &self.state.planes {
+        for plane in &self.state.model.planes {
             if let Some(raycast) = plane.raycast(ray) {
                 if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
                     continue;

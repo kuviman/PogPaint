@@ -42,6 +42,8 @@ pub struct Brush {
 
 #[derive(Deserialize)]
 pub struct Config {
+    pub save: KeyBind,
+    pub load: KeyBind,
     pub switch_plane: KeyBind,
     pub palette: KeyBind,
     pub first_person: KeyBind,

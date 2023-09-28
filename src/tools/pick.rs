@@ -8,7 +8,7 @@ impl Pick {
     }
     fn find(&self, state: &State, ray: Ray) -> Option<usize> {
         let mut closest = None;
-        for (idx, plane) in state.planes.iter().enumerate() {
+        for (idx, plane) in state.model.planes.iter().enumerate() {
             if let Some(raycast) = plane.raycast(ray) {
                 if plane.texture.color_at(raycast.texture_pos).a == 0.0 {
                     continue;
@@ -44,7 +44,7 @@ impl Tool for Pick {
     ) {
         let Some(ray) = ray else { return };
         if let Some(idx) = self.find(state, ray) {
-            let plane = &state.planes[idx];
+            let plane = &state.model.planes[idx];
             plane
                 .texture
                 .draw_outline(framebuffer, &state.camera, plane.transform);

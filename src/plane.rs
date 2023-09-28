@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Serialize)]
 pub struct Plane {
     pub texture: Texture,
     pub transform: mat4<f32>,
