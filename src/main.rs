@@ -204,7 +204,7 @@ impl App {
             if keys.color_chooser.matches(&event, &self.ctx) {
                 if self.color_chooser.is_none() {
                     self.color_chooser =
-                        Some(color::Chooser::new(&self.ctx, Rgba::<f32>::WHITE.into()));
+                        Some(color::Chooser::new(&self.ctx, self.state.color.into()));
                 } else {
                     self.color_chooser = None;
                 }
