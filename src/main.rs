@@ -165,6 +165,17 @@ impl App {
 
         ugli::clear(framebuffer, None, Some(1.0), None);
 
+        if self
+            .ctx
+            .geng
+            .window()
+            .is_key_pressed(self.ctx.keys.show_origin)
+        {
+            self.ctx
+                .gizmo
+                .draw(framebuffer, &self.state.camera, mat4::identity());
+        }
+
         if let Some(wheel) = &self.wheel {
             wheel::draw(self, wheel, framebuffer);
         }

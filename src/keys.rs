@@ -55,4 +55,5 @@ pub struct Config {
     pub color_chooser: KeyBind,
     pub undo: KeyBind,
     pub redo: KeyBind,
+    pub show_origin: geng::Key,
 }

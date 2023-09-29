@@ -6,6 +6,7 @@ switch_plane = "Tab"
 color_chooser = "X"
 undo = "ControlLeft-Z"
 redo = "ControlLeft-Y"
+show_origin = "O"
 
 [camera]
 forward = "W"
