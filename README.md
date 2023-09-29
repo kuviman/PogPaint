@@ -2,7 +2,9 @@
 
 A paint that allows you to have 2d layers placed in 3d space.
 
-![pog](pog.png)
+![chicken](chicken.png)
+
+![crab](crab.png)
 
 ## Try it out
 
