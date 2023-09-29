@@ -21,6 +21,7 @@ impl Clone for Texture {
                     Aabb2::ZERO.extend_positive(framebuffer.size()),
                     vec2::ZERO,
                 );
+                new.set_filter(ugli::Filter::Nearest);
                 new
             }),
             offset: self.offset,
