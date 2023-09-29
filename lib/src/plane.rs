@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Clone)]
 pub struct Plane {
     pub texture: Texture,
     pub transform: mat4<f32>,

@@ -90,6 +90,8 @@ pub struct App {
     drag_start: Option<vec3<f32>>,
     load_sender: std::sync::mpsc::Sender<Model>,
     load_recv: std::sync::mpsc::Receiver<Model>,
+    history: Vec<Model>,
+    history_pos: usize,
 }
 
 impl App {
@@ -113,6 +115,8 @@ impl App {
             load_sender,
             load_recv,
             color_chooser: None,
+            history: vec![],
+            history_pos: 0,
         }
     }
 
@@ -202,6 +206,13 @@ impl App {
                 if !matches!(event, geng::Event::Draw) {
                     continue;
                 }
+            }
+
+            if keys.undo.matches(&event, &self.ctx) {
+                self.undo();
+            }
+            if keys.redo.matches(&event, &self.ctx) {
+                self.redo();
             }
 
             // TODO color::handle_event(&mut self, &event);
@@ -315,6 +326,7 @@ impl App {
                         }
                     } else {
                         let ray = self.ray(self.ctx.geng.window().cursor_position());
+                        self.push_history();
                         self.toolbelt.current().start(&mut self.state, ray);
                     }
                 }
@@ -514,6 +526,37 @@ impl App {
             self.ctx.geng.window().unlock_cursor();
         }
         self.drag_start = None;
+    }
+
+    fn push_history(&mut self) {
+        self.history.truncate(self.history_pos);
+        self.history.push(self.state.model.clone());
+        self.history_pos += 1;
+    }
+    fn undo(&mut self) {
+        if self.history_pos >= self.history.len() {
+            self.push_history();
+            self.history_pos -= 1;
+        }
+        if self.history_pos != 0 {
+            self.history_pos -= 1;
+            self.state.model = self.history[self.history_pos].clone();
+        }
+        self.fix_selected();
+    }
+    fn redo(&mut self) {
+        if self.history_pos + 1 < self.history.len() {
+            self.history_pos += 1;
+            self.state.model = self.history[self.history_pos].clone();
+        }
+        self.fix_selected();
+    }
+    fn fix_selected(&mut self) {
+        if let Some(idx) = self.state.selected {
+            if self.state.model.planes.get(idx).is_none() {
+                self.state.selected = None;
+            }
+        }
     }
 }
 

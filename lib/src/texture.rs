@@ -6,6 +6,28 @@ pub struct Texture {
     pub offset: vec2<i32>,
 }
 
+impl Clone for Texture {
+    fn clone(&self) -> Self {
+        Self {
+            ugli: self.ugli.clone(),
+            texture: self.texture.as_ref().map(|texture| {
+                let mut new = ugli::Texture::new_uninitialized(&self.ugli, texture.size());
+                let framebuffer = ugli::FramebufferRead::new_color(
+                    &self.ugli,
+                    ugli::ColorAttachmentRead::Texture(texture),
+                );
+                framebuffer.copy_to_texture(
+                    &mut new,
+                    Aabb2::ZERO.extend_positive(framebuffer.size()),
+                    vec2::ZERO,
+                );
+                new
+            }),
+            offset: self.offset,
+        }
+    }
+}
+
 impl Texture {
     pub const MAX_SIZE: usize = 2048;
 

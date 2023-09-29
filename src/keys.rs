@@ -53,4 +53,6 @@ pub struct Config {
     pub precision: Precision,
     pub brush: Brush,
     pub color_chooser: KeyBind,
+    pub undo: KeyBind,
+    pub redo: KeyBind,
 }

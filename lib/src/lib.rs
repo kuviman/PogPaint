@@ -7,6 +7,7 @@ mod texture;
 pub use plane::*;
 pub use texture::*;
 
+#[derive(Clone)]
 pub struct Model {
     ugli: Ugli,
     pub planes: Vec<Plane>,

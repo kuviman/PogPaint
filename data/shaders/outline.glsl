@@ -13,7 +13,6 @@ void main() {
 
 #ifdef FRAGMENT_SHADER
 uniform sampler2D u_texture;
-uniform ivec2 u_texture_size;
 uniform vec4 u_color;
 void main() {
   vec4 color = texture2D(u_texture, v_uv);
