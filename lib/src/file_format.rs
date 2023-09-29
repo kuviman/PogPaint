@@ -63,7 +63,7 @@ impl Model {
             ugli: asset_manager.ugli().clone(),
             planes: stream::iter(pp.planes.into_iter())
                 .then(|plane| async move {
-                    let texture = match plane.image {
+                    let mut texture = match plane.image {
                         Some(image) => Some(match image {
                             Image::Load(path) => asset_manager.load(path).await.unwrap(),
                             Image::Embed { size, data } => {
@@ -75,6 +75,9 @@ impl Model {
                         }),
                         None => None,
                     };
+                    if let Some(texture) = &mut texture {
+                        texture.set_filter(ugli::Filter::Nearest);
+                    }
                     crate::Plane {
                         texture: crate::Texture::from(asset_manager.ugli(), texture, plane.offset),
                         transform: plane.transform,
