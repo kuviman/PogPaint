@@ -1,6 +1,6 @@
 save = "ControlLeft-S"
 load = "ControlLeft-O"
-palette = "Q"
+palette = "P"
 first_person = "F"
 switch_plane = "Tab"
 color_chooser = "Z"
@@ -22,6 +22,7 @@ transform = "T"
 [tools.temp]
 pick = "V"
 create = "N"
+color_picker = "Q"
 
 [precision]
 pixel = "ControlLeft"

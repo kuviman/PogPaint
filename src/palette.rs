@@ -50,9 +50,6 @@ impl ItemWheel for Palette {
     }
 
     fn select(&self, item: usize, app: &mut App) {
-        app.switch_primary_tool(AnyTool::new(tools::Brush::new(
-            &self.ctx,
-            self.colors[item],
-        )));
+        app.state.color = self.colors[item];
     }
 }

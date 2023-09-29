@@ -3,35 +3,27 @@ use super::*;
 pub struct Brush {
     ctx: Ctx,
     size: usize,
-    /// None means eraser
-    color: Option<Hsla<f32>>,
+    eraser: bool,
 }
 
 impl Brush {
     pub fn default(ctx: &Ctx) -> Self {
-        Self::new(ctx, ctx.config.default_brush.color)
+        Self::new(ctx)
     }
 
     pub fn eraser(ctx: &Ctx) -> Self {
-        Self::new_impl(ctx, None)
+        Self::new_impl(ctx, true)
     }
 
-    pub fn new(ctx: &Ctx, color: Rgba<f32>) -> Self {
-        Self::new_impl(ctx, Some(color))
+    pub fn new(ctx: &Ctx) -> Self {
+        Self::new_impl(ctx, false)
     }
 
-    fn new_impl(ctx: &Ctx, color: Option<Rgba<f32>>) -> Self {
+    fn new_impl(ctx: &Ctx, eraser: bool) -> Self {
         Self {
             ctx: ctx.clone(),
             size: ctx.config.default_brush.size,
-            color: color.map(Into::into),
-        }
-    }
-
-    fn actual_color(&self) -> Rgba<f32> {
-        match self.color {
-            Some(color) => color.into(),
-            None => Rgba::TRANSPARENT_BLACK,
+            eraser,
         }
     }
 
@@ -99,6 +91,14 @@ impl Brush {
             }
         });
     }
+
+    fn actual_color(&self, state: &State) -> Rgba<f32> {
+        if self.eraser {
+            Rgba::TRANSPARENT_BLACK
+        } else {
+            state.color
+        }
+    }
 }
 
 pub struct BrushStroke {
@@ -115,11 +115,12 @@ impl Drop for BrushStroke {
 impl Tool for Brush {
     type Stroke = BrushStroke;
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<BrushStroke> {
+        let color = self.actual_color(state);
         if let Some(idx) = state.selected {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                self.draw_line(&mut plane.texture, pos, pos, self.actual_color());
+                self.draw_line(&mut plane.texture, pos, pos, color);
                 return Some(BrushStroke {
                     prev_draw_pos: pos,
                     sfx: self.ctx.assets.scribble.play(),
@@ -129,16 +130,12 @@ impl Tool for Brush {
         None
     }
     fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {
+        let color = self.actual_color(state);
         if let Some(idx) = state.selected {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                self.draw_line(
-                    &mut plane.texture,
-                    stroke.prev_draw_pos,
-                    pos,
-                    self.actual_color(),
-                );
+                self.draw_line(&mut plane.texture, stroke.prev_draw_pos, pos, color);
                 stroke.prev_draw_pos = pos;
             }
         }
@@ -172,7 +169,11 @@ impl Tool for Brush {
                         &mut preview_plane.texture,
                         pos,
                         pos,
-                        self.color.map_or(Rgba::WHITE, Into::into),
+                        if self.eraser {
+                            Rgba::WHITE
+                        } else {
+                            state.color
+                        },
                     );
 
                     let offset = {
@@ -190,7 +191,7 @@ impl Tool for Brush {
                         }
                     };
                     preview_plane.transform *= mat4::translate(vec3(0.0, 0.0, offset));
-                    if self.color.is_some() {
+                    if !self.eraser {
                         self.ctx
                             .draw_plane(&preview_plane, framebuffer, &state.camera);
                     }
@@ -200,16 +201,16 @@ impl Tool for Brush {
             }
         }
 
-        let text = match self.color {
-            Some(_) => "brush",
-            None => "eraser",
+        let text = match self.eraser {
+            false => "brush",
+            true => "eraser",
         };
         let text = format!("{text} ({:.1} px)", self.size);
         let font = self.ctx.geng.default_font();
         let text_align = vec2::splat(geng::TextAlign::CENTER);
         let text_measure = font.measure(text.as_str(), text_align).unwrap();
-        if let Some(color) = self.color {
-            let color: Rgba<f32> = color.into();
+        if !self.eraser {
+            let color: Rgba<f32> = state.color;
             let transform = status_pos * mat3::translate(vec2(text_measure.max.x + 1.5, 0.0));
             ugli::draw(
                 framebuffer,

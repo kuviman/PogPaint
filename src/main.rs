@@ -32,6 +32,7 @@ struct Cli {
 }
 
 pub struct State {
+    color: Rgba<f32>,
     camera: Camera,
     selected: Option<usize>,
     model: Model,
@@ -54,6 +55,7 @@ impl State {
             },
             selected: Some(0),
             model,
+            color: ctx.config.default_brush.color,
         }
     }
 }
@@ -195,10 +197,7 @@ impl App {
 
             if let Some(chooser) = &mut self.color_chooser {
                 if let Some(color) = chooser.handle_event(&event, &mut self.state) {
-                    self.switch_primary_tool(AnyTool::new(tools::Brush::new(
-                        &self.ctx,
-                        color.into(),
-                    )));
+                    self.state.color = color.into();
                 }
                 if !matches!(event, geng::Event::Draw) {
                     continue;
@@ -258,6 +257,11 @@ impl App {
                 if let Some(bind) = &keys.eraser {
                     if bind.matches(&event, &self.ctx) {
                         return Some((AnyTool::new(tools::Brush::eraser(&self.ctx)), bind));
+                    }
+                }
+                if let Some(bind) = &keys.color_picker {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::ColorPicker::new(&self.ctx)), bind));
                     }
                 }
                 if let Some(bind) = &keys.transform {
