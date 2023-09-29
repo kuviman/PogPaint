@@ -370,6 +370,9 @@ impl App {
                         .drag_start
                         .map(|p| self.state.camera.view_matrix() * p.extend(1.0));
 
+                    #[cfg(target_arch = "wasm32")]
+                    let delta = delta * 20.0;
+
                     self.state.camera.rot +=
                         Angle::from_degrees(-delta.x as f32 * self.ctx.config.camera.sensitivity);
                     self.state.camera.attack = (self.state.camera.attack
