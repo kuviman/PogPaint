@@ -7,6 +7,7 @@ color_chooser = "X"
 undo = "ControlLeft-Z"
 redo = "ControlLeft-Y"
 show_origin = "O"
+delete_plane = "Delete"
 
 [camera]
 forward = "W"

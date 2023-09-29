@@ -242,6 +242,14 @@ impl App {
                 self.load();
             }
 
+            if keys.delete_plane.matches(&event, &self.ctx) {
+                if let Some(idx) = self.state.selected {
+                    self.push_history();
+                    self.state.model.planes.remove(idx);
+                    self.state.selected = None;
+                }
+            }
+
             if keys.switch_plane.matches(&event, &self.ctx) {
                 if self.state.model.planes.is_empty() {
                     self.state.selected = None;

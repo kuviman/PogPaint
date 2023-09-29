@@ -56,4 +56,5 @@ pub struct Config {
     pub undo: KeyBind,
     pub redo: KeyBind,
     pub show_origin: geng::Key,
+    pub delete_plane: KeyBind,
 }
