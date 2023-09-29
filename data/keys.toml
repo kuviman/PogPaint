@@ -3,6 +3,7 @@ load = "ControlLeft-O"
 palette = "Q"
 first_person = "F"
 switch_plane = "Tab"
+color_chooser = "Z"
 
 [camera]
 forward = "W"

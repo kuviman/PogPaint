@@ -80,6 +80,7 @@ impl Toolbelt {
 pub struct App {
     ctx: Ctx,
     wheel: Option<Wheel>,
+    color_chooser: Option<color::Chooser>,
     ui_camera: Camera2d,
     framebuffer_size: vec2<f32>,
     toolbelt: Toolbelt,
@@ -109,6 +110,7 @@ impl App {
             drag_start: None,
             load_sender,
             load_recv,
+            color_chooser: None,
         }
     }
 
@@ -160,6 +162,9 @@ impl App {
         if let Some(wheel) = &self.wheel {
             wheel::draw(self, wheel, framebuffer);
         }
+        if let Some(chooser) = &mut self.color_chooser {
+            chooser.draw(framebuffer);
+        }
     }
 
     fn start_wheel(&mut self, typ: WheelType) {
@@ -176,6 +181,30 @@ impl App {
             if let Ok(model) = self.load_recv.try_recv() {
                 self.state.model = model;
             }
+
+            let keys = self.ctx.keys.clone();
+
+            if keys.color_chooser.matches(&event, &self.ctx) {
+                if self.color_chooser.is_none() {
+                    self.color_chooser =
+                        Some(color::Chooser::new(&self.ctx, Rgba::<f32>::WHITE.into()));
+                } else {
+                    self.color_chooser = None;
+                }
+            }
+
+            if let Some(chooser) = &mut self.color_chooser {
+                if let Some(color) = chooser.handle_event(&event, &mut self.state) {
+                    self.switch_primary_tool(AnyTool::new(tools::Brush::new(
+                        &self.ctx,
+                        color.into(),
+                    )));
+                }
+                if !matches!(event, geng::Event::Draw) {
+                    continue;
+                }
+            }
+
             // TODO color::handle_event(&mut self, &event);
             if let Some(temp) = &mut self.toolbelt.temp {
                 if temp.cancel_on == Some(event.clone()) {
@@ -184,8 +213,6 @@ impl App {
                 }
             }
             self.toolbelt.current().handle_event(event.clone());
-
-            let keys = self.ctx.keys.clone();
 
             if keys.save.matches(&event, &self.ctx) {
                 self.save();

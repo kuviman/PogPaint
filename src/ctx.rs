@@ -12,6 +12,8 @@ pub struct Shaders {
     pub circle: Rc<ugli::Program>,
     pub ring: Rc<ugli::Program>,
     pub outline: Rc<ugli::Program>,
+    pub saturation_value: Rc<ugli::Program>,
+    pub hue: Rc<ugli::Program>,
 }
 
 impl geng::asset::Load for Shaders {
@@ -71,6 +73,16 @@ impl geng::asset::Load for Shaders {
                 outline: Rc::new(
                     shader_lib
                         .compile(&manager.load::<String>(path.join("outline.glsl")).await?)?,
+                ),
+                saturation_value: Rc::new(
+                    shader_lib.compile(
+                        &manager
+                            .load::<String>(path.join("saturation_value.glsl"))
+                            .await?,
+                    )?,
+                ),
+                hue: Rc::new(
+                    shader_lib.compile(&manager.load::<String>(path.join("hue.glsl")).await?)?,
                 ),
             })
         }

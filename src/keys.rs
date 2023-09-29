@@ -51,4 +51,5 @@ pub struct Config {
     pub tools: Tools,
     pub precision: Precision,
     pub brush: Brush,
+    pub color_chooser: KeyBind,
 }

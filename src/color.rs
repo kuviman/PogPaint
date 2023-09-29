@@ -1,96 +1,114 @@
 use super::*;
 
-struct ColorWheel {
-    ctx: Ctx,
-    program: Rc<ugli::Program>,
-    base: Hsla<f32>,
-    f: Box<dyn Fn(Hsla<f32>, f32) -> Hsla<f32>>,
+enum Interact {
+    Hue,
+    Main,
+    None,
 }
 
-impl ColorWheel {
-    pub fn new(
-        ctx: &Ctx,
-        program: &Rc<ugli::Program>,
-        base: Hsla<f32>,
-        f: impl 'static + Fn(Hsla<f32>, f32) -> Hsla<f32>,
-    ) -> Self {
+pub struct Chooser {
+    ctx: Ctx,
+    interact: Interact,
+    camera: Camera2d,
+    color: Hsla<f32>,
+    saturation_lightness_transform: mat3<f32>,
+    hue_transform: mat3<f32>,
+    current_color_transform: mat3<f32>,
+}
+
+impl Chooser {
+    pub fn new(ctx: &Ctx, color: Hsla<f32>) -> Self {
         Self {
             ctx: ctx.clone(),
-            program: program.clone(),
-            base,
-            f: Box::new(f),
+            interact: Interact::None,
+            camera: Camera2d {
+                center: vec2::ZERO,
+                rotation: Angle::ZERO,
+                fov: 5.0,
+            },
+            color,
+            saturation_lightness_transform: mat3::identity(),
+            hue_transform: mat3::translate(vec2(0.0, 1.0)) * mat3::scale(vec2(1.0, 0.1)),
+            current_color_transform: mat3::translate(vec2(0.0, 1.5)) * mat3::scale_uniform(0.1),
         }
     }
-    fn color_at(&self, angle: Angle<f32>) -> Hsla<f32> {
-        let x = angle.as_radians() / (2.0 * f32::PI);
-        let x = x - x.floor();
-        (self.f)(self.base, x)
-    }
-}
+    pub fn handle_event(&mut self, event: &geng::Event, state: &mut State) -> Option<Hsla<f32>> {
+        if *event
+            == (geng::Event::MousePress {
+                button: geng::MouseButton::Left,
+            })
+            || (matches!(event, geng::Event::CursorMove { .. })
+                && self
+                    .ctx
+                    .geng
+                    .window()
+                    .is_button_pressed(geng::MouseButton::Left))
+        {
+            let pos = |mat: mat3<f32>| -> Option<vec2<f32>> {
+                let cursor_pos = self.camera.screen_to_world(
+                    self.ctx.geng.window().size().map(|x| x as f32),
+                    self.ctx
+                        .geng
+                        .window()
+                        .cursor_position()
+                        .unwrap()
+                        .map(|x| x as f32),
+                );
+                let p = (mat.inverse() * cursor_pos.extend(1.0)).into_2d();
+                if Aabb2::ZERO.extend_uniform(1.0).contains(p) {
+                    Some(p * 0.5 + vec2::splat(0.5))
+                } else {
+                    None
+                }
+            };
 
-impl ContiniousWheel for ColorWheel {
-    fn draw(
-        &self,
-        framebuffer: &mut ugli::Framebuffer,
-        camera: &dyn geng::AbstractCamera2d,
-        transform: mat3<f32>,
-        hover: Option<Angle<f32>>,
-    ) {
+            if let Some(pos) = pos(self.saturation_lightness_transform) {
+                self.color.s = pos.x;
+                self.color.l = pos.y;
+            }
+            if let Some(pos) = pos(self.hue_transform) {
+                self.color.h = pos.x;
+            }
+            return Some(self.color);
+        }
+        None
+    }
+    pub fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
         let framebuffer_size = framebuffer.size().map(|x| x as f32);
-        let actual_color = hover.map_or(self.base, |angle| self.color_at(angle));
+
         ugli::draw(
             framebuffer,
-            &self.program,
+            &self.ctx.shaders.saturation_value,
             ugli::DrawMode::TriangleFan,
             &*self.ctx.quad,
             (
                 ugli::uniforms! {
-                    u_transform: transform,
-                    u_inner_radius: self.ctx.config.wheel.inner_radius,
-                    u_actual_color: Rgba::from(actual_color),
-                    u_actual_color_hsla: vec4(actual_color.h, actual_color.s, actual_color.l, actual_color.a),
+                    u_transform: self.saturation_lightness_transform,
+                    u_hue: self.color.h,
                 },
-                camera.uniforms(framebuffer_size),
+                self.camera.uniforms(framebuffer_size),
             ),
-            ugli::DrawParameters { ..default() },
+            ugli::DrawParameters::default(),
+        );
+
+        ugli::draw(
+            framebuffer,
+            &self.ctx.shaders.hue,
+            ugli::DrawMode::TriangleFan,
+            &*self.ctx.quad,
+            (
+                ugli::uniforms! {
+                    u_transform: self.hue_transform,
+                },
+                self.camera.uniforms(framebuffer_size),
+            ),
+            ugli::DrawParameters::default(),
+        );
+
+        self.ctx.geng.draw2d().draw2d(
+            framebuffer,
+            &self.camera,
+            &draw2d::Quad::unit(self.color.into()).transform(self.current_color_transform),
         );
     }
-
-    fn select(&self, hover: Angle<f32>, app: &mut App) {
-        todo!()
-        // state.color = self.color_at(hover);
-    }
 }
-
-// pub fn handle_event(state: &mut App, event: &geng::Event) {
-//     let ctx = &state.ctx;
-//     if let geng::Event::KeyPress { key } = event {
-//         match key {
-//             geng::Key::H => {
-//                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
-//                     ctx,
-//                     &ctx.shaders.hue_wheel,
-//                     state.color,
-//                     |color, h| Hsla { h, ..color },
-//                 ))));
-//             }
-//             geng::Key::J => {
-//                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
-//                     ctx,
-//                     &ctx.shaders.saturation_wheel,
-//                     state.color,
-//                     |color, s| Hsla { s, ..color },
-//                 ))));
-//             }
-//             geng::Key::L => {
-//                 state.start_wheel(WheelType::Continious(Box::new(ColorWheel::new(
-//                     ctx,
-//                     &ctx.shaders.lightness_wheel,
-//                     state.color,
-//                     |color, l| Hsla { l, ..color },
-//                 ))));
-//             }
-//             _ => {}
-//         }
-//     }
-// }
