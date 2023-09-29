@@ -19,7 +19,7 @@ void main() {
   int diff = 0;
   for (int dx = -2; dx <= 2; dx++) {
     for (int dy = -2; dy <= 2; dy++) {
-      if (color != texture2D(u_texture, v_uv + dFdx(v_uv) * float(dx) + dFdy(v_uv) * float(dy))) {
+      if (color.a != texture2D(u_texture, v_uv + dFdx(v_uv) * float(dx) + dFdy(v_uv) * float(dy)).a) {
         diff++;
       }
     }
