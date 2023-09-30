@@ -20,8 +20,10 @@ pub struct Pp {
     pub planes: Vec<Plane>,
 }
 
+const HEADER: &str = "PogPaint";
+
 impl Model {
-    pub fn save(&self, writer: impl std::io::Write) -> std::io::Result<()> {
+    pub fn save(&self, mut writer: impl std::io::Write) -> std::io::Result<()> {
         let pp = Pp {
             planes: self
                 .planes
@@ -42,6 +44,7 @@ impl Model {
                 })
                 .collect(),
         };
+        writer.write_all(HEADER.as_bytes())?;
         let mut encoder = flate2::write::GzEncoder::new(writer, flate2::Compression::best());
         encoder.write_all(&bincode::serialize(&pp).unwrap())?;
         encoder.finish()?;
@@ -54,6 +57,11 @@ impl Model {
     ) -> std::io::Result<Self> {
         let mut buf = Vec::new();
         let mut reader = std::pin::pin!(reader);
+        {
+            let mut header = vec![0; HEADER.len()];
+            reader.read_exact(&mut header).await?;
+            assert_eq!(header, HEADER.as_bytes());
+        }
         reader.read_to_end(&mut buf).await.unwrap();
         let mut decoder = flate2::read::GzDecoder::new(buf.as_slice());
         let mut buf = Vec::new();
