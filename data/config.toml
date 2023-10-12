@@ -46,6 +46,3 @@ pos = "Top"
 [wheel]
 size = 3
 inner_radius = 0.5
-
-[heightmap]
-change_speed = 8

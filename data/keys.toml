@@ -22,7 +22,6 @@ look = "CapsLock"
 brush = "B"
 eraser = "E"
 transform = "T"
-heightmap = "H"
 
 [tools.temp]
 pick = "V"
