@@ -294,27 +294,16 @@ impl Ctx {
         //     * mat4::translate(bb.center().extend(0.0))
         //     * mat4::scale(bb.size().extend(1.0) / 2.0);
 
-        let empty_heightmap = Heightmap {
-            texture: Texture::new(self.geng.ugli()),
-            min: 0.0,
-            max: 1.0,
+        let height = |p: vec2<i32>| -> f32 {
+            let Some(heightmap) = &plane.heightmap else {
+                return 0.0;
+            };
+            heightmap.get(p).unwrap_or(0.0)
         };
-        let heightmap = plane.heightmap.as_ref().unwrap_or(&empty_heightmap);
-        let heightmap_texture = heightmap
-            .texture
-            .texture
-            .as_ref()
-            .unwrap_or(&self.transparent_black);
-        // from texture uv to heightmap uv
-        let heightmap_uv_matrix = mat3::scale(heightmap_texture.size().map(|x| 1.0 / x as f32))
-            * mat3::translate(
-                (-heightmap.texture.offset + plane.texture.offset).map(|x| x as f32 + 0.5),
-            )
-            * mat3::scale(texture.size().map(|x| x as f32));
 
         #[derive(ugli::Vertex)]
         pub struct MeshVertex {
-            pub a_pos: vec2<f32>,
+            pub a_pos: vec3<f32>,
             pub a_uv: vec2<f32>,
         }
         let mesh = ugli::VertexBuffer::new_dynamic(self.geng.ugli(), {
@@ -323,7 +312,7 @@ impl Ctx {
                 .flat_map(|p| {
                     let quad = [vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1)].map(|v| p + v);
                     [quad[0], quad[1], quad[2], quad[0], quad[2], quad[3]].map(|v| MeshVertex {
-                        a_pos: v.map(|x| x as f32),
+                        a_pos: v.map(|x| x as f32).extend(height(v)),
                         a_uv: (v - bb.bottom_left()).map(|x| x as f32)
                             / bb.size().map(|x| x as f32),
                     })
@@ -340,10 +329,6 @@ impl Ctx {
                 ugli::uniforms! {
                     u_texture: texture,
                     u_texture_size: texture.size(),
-                    u_heightmap_texture: heightmap_texture,
-                    u_heightmap_matrix: heightmap_uv_matrix,
-                    u_min_height: heightmap.min,
-                    u_max_height: heightmap.max,
                     u_transform: plane.transform,
                     u_color: Rgba::WHITE,
                 },

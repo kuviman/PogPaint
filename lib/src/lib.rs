@@ -1,9 +1,12 @@
+use array2d::Array2D;
 use geng::prelude::*;
 
 pub mod file_format;
+mod heightmap;
 mod plane;
 mod texture;
 
+pub use heightmap::*;
 pub use plane::*;
 pub use texture::*;
 

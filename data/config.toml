@@ -1,8 +1,6 @@
 background_color = "#444"
 max_texture_size = 2048
 
-heightmap = { min = 0, max = 16 }
-
 default_palette = [
   "white",
   "black",
@@ -48,3 +46,6 @@ pos = "Top"
 [wheel]
 size = 3
 inner_radius = 0.5
+
+[heightmap]
+change_speed = 8

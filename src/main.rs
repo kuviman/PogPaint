@@ -410,6 +410,8 @@ impl App {
                 }
                 geng::Event::Draw => {
                     let delta_time = timer.tick();
+                    let ray = self.ray(self.ctx.geng.window().cursor_position());
+                    self.toolbelt.current().resume(&mut self.state, ray);
                     let mut mov = vec3::<i32>::ZERO;
                     if self
                         .ctx

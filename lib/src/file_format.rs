@@ -34,23 +34,32 @@ pub mod versions {
         pub const VERSION: u8 = 1;
 
         #[derive(Serialize, Deserialize)]
-        pub enum Image {
+        pub enum ImageData {
             Load(PathBuf),
             Embed { size: vec2<usize>, data: Vec<u8> },
         }
 
         #[derive(Serialize, Deserialize)]
+        pub struct Image {
+            pub data: ImageData,
+            pub offset: vec2<i32>,
+        }
+
+        #[derive(Serialize, Deserialize)]
+        pub enum HeightmapData {
+            Embed { data: Array2D<f32> },
+        }
+
+        #[derive(Serialize, Deserialize)]
         pub struct Heightmap {
-            pub image: Image,
-            pub min: f32,
-            pub max: f32,
+            pub data: HeightmapData,
+            pub offset: vec2<i32>,
         }
 
         #[derive(Serialize, Deserialize)]
         pub struct Plane {
             pub image: Option<Image>,
             pub heightmap: Option<Heightmap>,
-            pub offset: vec2<i32>,
             pub transform: mat4<f32>,
         }
 
@@ -59,7 +68,7 @@ pub mod versions {
             pub planes: Vec<Plane>,
         }
 
-        impl From<v0::Image> for Image {
+        impl From<v0::Image> for ImageData {
             fn from(old: v0::Image) -> Self {
                 match old {
                     v0::Image::Load(path) => Self::Load(path),
@@ -71,9 +80,14 @@ pub mod versions {
         impl From<v0::Plane> for Plane {
             fn from(old: v0::Plane) -> Self {
                 Self {
-                    image: old.image.map(Into::into),
+                    image: match old.image {
+                        Some(image) => Some(Image {
+                            data: image.into(),
+                            offset: old.offset,
+                        }),
+                        None => None,
+                    },
                     heightmap: None,
-                    offset: old.offset,
                     transform: old.transform,
                 }
             }
@@ -91,46 +105,37 @@ pub mod versions {
 
 use versions::v1 as current_version;
 
-use current_version::{Heightmap, Image, Plane, Pp};
+use current_version::{Heightmap, HeightmapData, Image, ImageData, Plane, Pp};
 
 const HEADER: &str = "VersionedPogPaint";
 
 impl Model {
     pub fn save(&self, mut writer: impl std::io::Write) -> std::io::Result<()> {
-        let image = |texture: &ugli::Texture| Image::Embed {
-            size: texture.size(),
-            data: {
-                let framebuffer = ugli::FramebufferRead::new_color(
-                    &self.ugli,
-                    ugli::ColorAttachmentRead::Texture(texture),
-                );
-                framebuffer.read_color().data().to_vec()
-            },
-        };
         let pp = Pp {
             planes: self
                 .planes
                 .iter()
-                .map(|plane| {
-                    if let Some(heightmap) = &plane.heightmap {
-                        assert_eq!(plane.texture.offset, heightmap.texture.offset);
-                    }
-                    Plane {
-                        image: plane.texture.texture.as_ref().map(image),
-                        heightmap: plane.heightmap.as_ref().and_then(|heightmap| {
-                            if let Some(texture) = &heightmap.texture.texture {
-                                Some(Heightmap {
-                                    image: image(texture),
-                                    min: heightmap.min,
-                                    max: heightmap.max,
-                                })
-                            } else {
-                                None
-                            }
-                        }),
+                .map(|plane| Plane {
+                    image: plane.texture.texture.as_ref().map(|texture| Image {
+                        data: ImageData::Embed {
+                            size: texture.size(),
+                            data: {
+                                let framebuffer = ugli::FramebufferRead::new_color(
+                                    &self.ugli,
+                                    ugli::ColorAttachmentRead::Texture(texture),
+                                );
+                                framebuffer.read_color().data().to_vec()
+                            },
+                        },
                         offset: plane.texture.offset,
-                        transform: plane.transform,
-                    }
+                    }),
+                    heightmap: plane.heightmap.as_ref().map(|heightmap| Heightmap {
+                        data: HeightmapData::Embed {
+                            data: heightmap.data.clone(),
+                        },
+                        offset: heightmap.offset,
+                    }),
+                    transform: plane.transform,
                 })
                 .collect(),
         };
@@ -186,10 +191,10 @@ impl Model {
             ugli: asset_manager.ugli().clone(),
             planes: stream::iter(pp.planes.into_iter())
                 .then(|plane| async move {
-                    let texture = |image: Image| async move {
+                    let texture = |image: ImageData| async move {
                         let mut texture = match image {
-                            Image::Load(path) => asset_manager.load(path).await.unwrap(),
-                            Image::Embed { size, data } => {
+                            ImageData::Load(path) => asset_manager.load(path).await.unwrap(),
+                            ImageData::Embed { size, data } => {
                                 let mut texture =
                                     ugli::Texture::new_uninitialized(asset_manager.ugli(), size);
                                 texture.sub_image(vec2::ZERO, size, &data);
@@ -200,20 +205,19 @@ impl Model {
                         texture
                     };
                     crate::Plane {
-                        texture: crate::Texture::from(
-                            asset_manager.ugli(),
-                            future::OptionFuture::from(plane.image.map(texture)).await,
-                            plane.offset,
-                        ),
+                        texture: {
+                            let (texture, offset) = match plane.image {
+                                Some(image) => (Some(texture(image.data).await), image.offset),
+                                None => (None, vec2::ZERO),
+                            };
+                            crate::Texture::from(asset_manager.ugli(), texture, offset)
+                        },
                         heightmap: match plane.heightmap {
                             Some(heightmap) => Some(crate::Heightmap {
-                                texture: crate::Texture::from(
-                                    asset_manager.ugli(),
-                                    Some(texture(heightmap.image).await),
-                                    plane.offset,
-                                ),
-                                min: heightmap.min,
-                                max: heightmap.max,
+                                data: match heightmap.data {
+                                    HeightmapData::Embed { data } => data,
+                                },
+                                offset: heightmap.offset,
                             }),
                             None => None,
                         },

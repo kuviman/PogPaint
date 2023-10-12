@@ -14,11 +14,7 @@ impl Heightmap {
     }
 
     fn round_pos(&self, pos: vec2<f32>) -> vec2<f32> {
-        if self.size % 2 == 0 {
-            pos.map(|x| x.round())
-        } else {
-            pos.map(|x| (x - 0.5).round() + 0.5)
-        }
+        pos.map(|x| x.round())
     }
 
     fn draw_width(&self) -> f32 {
@@ -26,95 +22,21 @@ impl Heightmap {
         (rounded + self.size as f32) / 2.0
     }
 
-    fn draw_line(
-        &self,
-        heightmap: &mut Option<crate::Heightmap>,
-        p1: vec2<f32>,
-        p2: vec2<f32>,
-        color: Rgba<f32>,
-    ) {
-        self.draw_line_impl(
-            &mut heightmap
-                .get_or_insert_with(|| crate::Heightmap {
-                    texture: Texture::new(self.ctx.geng.ugli()),
-                    min: self.ctx.config.heightmap.min,
-                    max: self.ctx.config.heightmap.max,
-                })
-                .texture,
-            p1,
-            p2,
-            color,
-        );
-    }
-
-    fn draw_line_impl(
-        &self,
-        texture: &mut Texture,
-        p1: vec2<f32>,
-        p2: vec2<f32>,
-        color: Rgba<f32>,
-    ) {
-        let width = self.draw_width();
-        let bb = {
-            let bb = Aabb2::from_corners(p1, p2).extend_uniform(width);
-            Aabb2 {
-                min: bb.min.map(|x| x.floor() as i32),
-                max: bb.max.map(|x| x.ceil() as i32),
-            }
-        };
-        texture.draw(bb, |framebuffer, viewport| {
-            let dir = (p2 - p1).normalize_or_zero();
-            let normal = dir.rotate_90();
-            let transform = mat3::translate((p1 + p2) / 2.0)
-                * mat3::from_orts((p2 - p1) / 2.0, normal * width / 2.0);
-            ugli::draw(
-                framebuffer,
-                &self.ctx.shaders.color_2d,
-                ugli::DrawMode::TriangleFan,
-                &*self.ctx.quad,
-                ugli::uniforms! {
-                    u_projection_matrix: mat3::ortho(bb.map(|x| x as f32)),
-                    u_view_matrix: mat3::identity(),
-                    u_transform: transform,
-                    u_color: color,
-                },
-                ugli::DrawParameters {
-                    viewport: Some(viewport),
-                    ..default()
-                },
-            );
-            for p in [p1, p2] {
-                ugli::draw(
-                    framebuffer,
-                    &self.ctx.shaders.circle,
-                    ugli::DrawMode::TriangleFan,
-                    &*self.ctx.quad,
-                    ugli::uniforms! {
-                        u_projection_matrix: mat3::ortho(bb.map(|x| x as f32)),
-                        u_view_matrix: mat3::identity(),
-                        u_transform: mat3::translate(p) * mat3::scale_uniform(width / 2.0 + 0.5),
-                        u_color: color,
-                        u_radius: (width / 2.0) / (width / 2.0 + 0.5),
-                    },
-                    ugli::DrawParameters {
-                        viewport: Some(viewport),
-                        ..default()
-                    },
-                );
-            }
-        });
+    fn paint(&self, heightmap: &mut Option<crate::Heightmap>, pos: vec2<f32>, delta_time: f32) {
+        let heightmap = heightmap.get_or_insert_with(crate::Heightmap::new);
+        let bb = Aabb2::point(pos.map(|x| x.round() as i32)).extend_uniform(self.size as i32);
+        heightmap.ensure_bounds(bb);
+        for p in bb.points() {
+            let x = (1.0 - (p.map(|x| x as f32) - pos).len() / self.size as f32).max(0.0);
+            *heightmap.get_mut(p).unwrap() +=
+                self.ctx.config.heightmap.change_speed * delta_time * x;
+        }
     }
 }
 
 pub struct BrushStroke {
     prev_draw_pos: vec2<f32>,
-    sfx: geng::SoundEffect,
-}
-
-impl Drop for BrushStroke {
-    fn drop(&mut self) {
-        self.sfx.stop();
-    }
+    timer: Timer,
 }
 
 impl Tool for Heightmap {
@@ -124,10 +46,9 @@ impl Tool for Heightmap {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                self.draw_line(&mut plane.heightmap, pos, pos, Rgba::WHITE);
                 return Some(BrushStroke {
                     prev_draw_pos: pos,
-                    sfx: self.ctx.assets.scribble.play(),
+                    timer: Timer::new(),
                 });
             }
         }
@@ -138,8 +59,11 @@ impl Tool for Heightmap {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                self.draw_line(&mut plane.heightmap, stroke.prev_draw_pos, pos, Rgba::WHITE);
-                stroke.prev_draw_pos = pos;
+                self.paint(
+                    &mut plane.heightmap,
+                    pos,
+                    stroke.timer.tick().as_secs_f64() as f32,
+                );
             }
         }
     }
@@ -156,43 +80,7 @@ impl Tool for Heightmap {
     ) {
         let framebuffer_size = framebuffer.size().map(|x| x as f32);
 
-        // Draw preview
-        if let Some(ray) = ray {
-            if let Some(idx) = state.selected {
-                let plane = &state.model.planes[idx];
-
-                let mut preview_plane = Plane {
-                    texture: Texture::new(self.ctx.geng.ugli()),
-                    heightmap: None, // TODO
-                    transform: plane.transform,
-                };
-
-                if let Some(raycast) = preview_plane.raycast(ray) {
-                    let pos = self.round_pos(raycast.texture_pos);
-                    self.draw_line_impl(&mut preview_plane.texture, pos, pos, Rgba::WHITE);
-
-                    let offset = {
-                        const EPS: f32 = 1e-2;
-
-                        let forward = (state.camera.view_matrix().inverse()
-                            * vec4(0.0, 0.0, -1.0, 0.0))
-                        .xyz();
-                        let plane_up = (plane.transform * vec4(0.0, 0.0, 1.0, 0.0)).xyz();
-
-                        if vec3::dot(forward, plane_up) < 0.0 {
-                            EPS
-                        } else {
-                            -EPS
-                        }
-                    };
-                    preview_plane.transform *= mat4::translate(vec3(0.0, 0.0, offset));
-                    self.ctx
-                        .draw_plane(&preview_plane, framebuffer, &state.camera);
-                    self.ctx
-                        .draw_plane_outline(&preview_plane, framebuffer, &state.camera);
-                }
-            }
-        }
+        // TODO Draw preview
 
         let text = "heightmap";
         let text = format!("{text} ({:.1} px)", self.size);

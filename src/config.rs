@@ -56,8 +56,7 @@ pub struct Status {
 
 #[derive(Deserialize)]
 pub struct Heightmap {
-    pub min: f32,
-    pub max: f32,
+    pub change_speed: f32,
 }
 
 #[derive(geng::asset::Load, Deserialize)]

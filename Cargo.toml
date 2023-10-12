@@ -6,6 +6,7 @@ geng.git = "https://github.com/geng-engine/geng"
 # geng.path = "../geng/crates/geng"
 serde = "1"
 pog-paint.path = "lib"
+array2d = { version = "0.3", features = ["serde"] }
 
 [package]
 name = "pog-paint-bin"
@@ -19,3 +20,4 @@ assets = ["data"]
 geng.workspace = true
 pog-paint.workspace = true
 serde.workspace = true
+array2d.workspace = true

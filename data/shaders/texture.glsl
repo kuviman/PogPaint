@@ -1,20 +1,14 @@
 varying vec2 v_uv;
 
 #ifdef VERTEX_SHADER
-attribute vec2 a_pos;
+attribute vec3 a_pos;
 attribute vec2 a_uv;
 uniform mat4 u_projection_matrix;
 uniform mat4 u_view_matrix;
 uniform mat4 u_transform;
-uniform sampler2D u_heightmap_texture;
-uniform mat3 u_heightmap_matrix;
-uniform float u_min_height;
-uniform float u_max_height;
 void main() {
   v_uv = a_uv;
-  vec3 normal = vec3(0.0, 0.0, 1.0);
-  float height = u_min_height + texture2D(u_heightmap_texture, (u_heightmap_matrix * vec3(v_uv, 1.0)).xy).r * (u_max_height - u_min_height);
-  gl_Position = u_projection_matrix * u_view_matrix * u_transform * vec4(vec3(a_pos, 0.0) + normal * height, 1.0);
+  gl_Position = u_projection_matrix * u_view_matrix * u_transform * vec4(a_pos, 1.0);
 }
 #endif
 
