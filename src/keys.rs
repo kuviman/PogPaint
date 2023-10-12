@@ -19,6 +19,7 @@ pub struct ToolKeys {
     pub pick: Option<KeyBind>,
     pub create: Option<KeyBind>,
     pub color_picker: Option<KeyBind>,
+    pub heightmap: Option<KeyBind>,
 }
 
 #[derive(Deserialize)]

@@ -1,8 +1,16 @@
 use super::*;
 
 #[derive(Clone)]
+pub struct Heightmap {
+    pub texture: Texture,
+    pub min: f32,
+    pub max: f32,
+}
+
+#[derive(Clone)]
 pub struct Plane {
     pub texture: Texture,
+    pub heightmap: Option<Heightmap>,
     pub transform: mat4<f32>,
 }
 

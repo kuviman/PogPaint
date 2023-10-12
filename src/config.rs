@@ -54,6 +54,12 @@ pub struct Status {
     pub width: f32,
 }
 
+#[derive(Deserialize)]
+pub struct Heightmap {
+    pub min: f32,
+    pub max: f32,
+}
+
 #[derive(geng::asset::Load, Deserialize)]
 #[load(serde = "toml")]
 pub struct Config {
@@ -67,4 +73,5 @@ pub struct Config {
     pub grid: Grid,
     pub default_palette: Vec<Rgba<f32>>,
     pub status: Status,
+    pub heightmap: Heightmap,
 }

@@ -1,29 +1,15 @@
 use super::*;
 
-pub struct Brush {
+pub struct Heightmap {
     ctx: Ctx,
     size: usize,
-    eraser: bool,
 }
 
-impl Brush {
-    pub fn default(ctx: &Ctx) -> Self {
-        Self::new(ctx)
-    }
-
-    pub fn eraser(ctx: &Ctx) -> Self {
-        Self::new_impl(ctx, true)
-    }
-
+impl Heightmap {
     pub fn new(ctx: &Ctx) -> Self {
-        Self::new_impl(ctx, false)
-    }
-
-    fn new_impl(ctx: &Ctx, eraser: bool) -> Self {
         Self {
             ctx: ctx.clone(),
             size: ctx.config.default_brush.size,
-            eraser,
         }
     }
 
@@ -40,7 +26,34 @@ impl Brush {
         (rounded + self.size as f32) / 2.0
     }
 
-    fn draw_line(&self, texture: &mut Texture, p1: vec2<f32>, p2: vec2<f32>, color: Rgba<f32>) {
+    fn draw_line(
+        &self,
+        heightmap: &mut Option<crate::Heightmap>,
+        p1: vec2<f32>,
+        p2: vec2<f32>,
+        color: Rgba<f32>,
+    ) {
+        self.draw_line_impl(
+            &mut heightmap
+                .get_or_insert_with(|| crate::Heightmap {
+                    texture: Texture::new(self.ctx.geng.ugli()),
+                    min: self.ctx.config.heightmap.min,
+                    max: self.ctx.config.heightmap.max,
+                })
+                .texture,
+            p1,
+            p2,
+            color,
+        );
+    }
+
+    fn draw_line_impl(
+        &self,
+        texture: &mut Texture,
+        p1: vec2<f32>,
+        p2: vec2<f32>,
+        color: Rgba<f32>,
+    ) {
         let width = self.draw_width();
         let bb = {
             let bb = Aabb2::from_corners(p1, p2).extend_uniform(width);
@@ -91,14 +104,6 @@ impl Brush {
             }
         });
     }
-
-    fn actual_color(&self, state: &State) -> Rgba<f32> {
-        if self.eraser {
-            Rgba::TRANSPARENT_BLACK
-        } else {
-            state.color
-        }
-    }
 }
 
 pub struct BrushStroke {
@@ -112,15 +117,14 @@ impl Drop for BrushStroke {
     }
 }
 
-impl Tool for Brush {
+impl Tool for Heightmap {
     type Stroke = BrushStroke;
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<BrushStroke> {
-        let color = self.actual_color(state);
         if let Some(idx) = state.selected {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                self.draw_line(&mut plane.texture, pos, pos, color);
+                self.draw_line(&mut plane.heightmap, pos, pos, Rgba::WHITE);
                 return Some(BrushStroke {
                     prev_draw_pos: pos,
                     sfx: self.ctx.assets.scribble.play(),
@@ -130,12 +134,11 @@ impl Tool for Brush {
         None
     }
     fn resume(&mut self, stroke: &mut Self::Stroke, state: &mut State, ray: Ray) {
-        let color = self.actual_color(state);
         if let Some(idx) = state.selected {
             let plane = &mut state.model.planes[idx];
             if let Some(raycast) = plane.raycast(ray) {
                 let pos = self.round_pos(raycast.texture_pos);
-                self.draw_line(&mut plane.texture, stroke.prev_draw_pos, pos, color);
+                self.draw_line(&mut plane.heightmap, stroke.prev_draw_pos, pos, Rgba::WHITE);
                 stroke.prev_draw_pos = pos;
             }
         }
@@ -166,16 +169,7 @@ impl Tool for Brush {
 
                 if let Some(raycast) = preview_plane.raycast(ray) {
                     let pos = self.round_pos(raycast.texture_pos);
-                    self.draw_line(
-                        &mut preview_plane.texture,
-                        pos,
-                        pos,
-                        if self.eraser {
-                            Rgba::WHITE
-                        } else {
-                            state.color
-                        },
-                    );
+                    self.draw_line_impl(&mut preview_plane.texture, pos, pos, Rgba::WHITE);
 
                     let offset = {
                         const EPS: f32 = 1e-2;
@@ -192,42 +186,19 @@ impl Tool for Brush {
                         }
                     };
                     preview_plane.transform *= mat4::translate(vec3(0.0, 0.0, offset));
-                    if !self.eraser {
-                        self.ctx
-                            .draw_plane(&preview_plane, framebuffer, &state.camera);
-                    }
+                    self.ctx
+                        .draw_plane(&preview_plane, framebuffer, &state.camera);
                     self.ctx
                         .draw_plane_outline(&preview_plane, framebuffer, &state.camera);
                 }
             }
         }
 
-        let text = match self.eraser {
-            false => "brush",
-            true => "eraser",
-        };
+        let text = "heightmap";
         let text = format!("{text} ({:.1} px)", self.size);
         let font = self.ctx.geng.default_font();
         let text_align = vec2::splat(geng::TextAlign::CENTER);
         let text_measure = font.measure(text.as_str(), text_align).unwrap();
-        if !self.eraser {
-            let color: Rgba<f32> = state.color;
-            let transform = status_pos * mat3::translate(vec2(text_measure.max.x + 1.5, 0.0));
-            ugli::draw(
-                framebuffer,
-                &self.ctx.shaders.color_2d,
-                ugli::DrawMode::TriangleFan,
-                &*self.ctx.quad,
-                (
-                    ugli::uniforms! {
-                        u_transform: transform,
-                        u_color: color,
-                    },
-                    ui_camera.uniforms(framebuffer_size),
-                ),
-                ugli::DrawParameters { ..default() },
-            );
-        }
         font.draw(
             framebuffer,
             ui_camera,

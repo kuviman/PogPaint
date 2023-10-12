@@ -34,6 +34,7 @@ impl Tool for Create {
     fn start(&mut self, state: &mut State, ray: Ray) -> Option<()> {
         state.model.planes.push(Plane {
             texture: Texture::new(self.ctx.geng.ugli()),
+            heightmap: None,
             transform: self.new_transform(state, ray)?,
         });
         state.selected = Some(state.model.planes.len() - 1);

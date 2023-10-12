@@ -43,6 +43,7 @@ impl State {
         let mut model = Model::new(ctx.geng.ugli());
         model.planes.push(Plane {
             texture: Texture::new(ctx.geng.ugli()),
+            heightmap: None,
             transform: mat4::identity(),
         });
         Self {
@@ -307,6 +308,11 @@ impl App {
                 if let Some(bind) = &keys.create {
                     if bind.matches(&event, &self.ctx) {
                         return Some((AnyTool::new(tools::Create::new(&self.ctx)), bind));
+                    }
+                }
+                if let Some(bind) = &keys.heightmap {
+                    if bind.matches(&event, &self.ctx) {
+                        return Some((AnyTool::new(tools::Heightmap::new(&self.ctx)), bind));
                     }
                 }
                 None
